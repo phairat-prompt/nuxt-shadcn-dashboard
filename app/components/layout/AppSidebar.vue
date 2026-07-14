@@ -3,8 +3,8 @@ import type { NavGroup, NavLink, NavSectionTitle } from '~/types/nav'
 import { navMenu, navMenuBottom } from '~/constants/menus'
 
 // ถ้า logo อยู่ใน app/assets/moe.png
-import Logo from '~/assets/prompt.png'
-// import Logo from '~/assets/moe.png'
+// import Logo from '~/assets/prompt.png'
+import Logo from '~/assets/moe.png'
 
 function resolveNavItemComponent(item: NavLink | NavGroup | NavSectionTitle): any {
   if ('children' in item)
@@ -14,8 +14,8 @@ function resolveNavItemComponent(item: NavLink | NavGroup | NavSectionTitle): an
 }
 
 const appInfo = {
-  name: 'Dashboard',
-  subtitle: 'Prompt Technical Services',
+  name: 'Warroom',
+  subtitle: 'กรมธุรกิจพลังงาน',
   logo: Logo,
 }
 

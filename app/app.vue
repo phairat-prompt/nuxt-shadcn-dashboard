@@ -24,8 +24,8 @@ useHead({
   },
 })
 
-const title = 'Dashboard'
-const description = 'prompt Technical Services.'
+const title = 'Warroom'
+const description = 'กรมธุรกิจพลังงาน'
 
 useSeoMeta({
   title,
