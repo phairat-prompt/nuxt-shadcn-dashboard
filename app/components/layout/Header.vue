@@ -1,54 +1,55 @@
 <script setup lang="ts">
 const route = useRoute()
 
-function setLinks() {
-  if (route.fullPath === '/') {
-    return [{ title: 'Home', href: '/' }]
-  }
+const routeName = computed(() => {
+  const lastPath = route.path.split('/').filter(Boolean).pop()
 
-  const segments = route.fullPath.split('/').filter(item => item !== '')
+  if (!lastPath)
+    return 'Home'
 
-  const breadcrumbs = segments.map((item, index) => {
-    const str = item.replace(/-/g, ' ')
-    const title = str
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-
-    return {
-      title,
-      href: `/${segments.slice(0, index + 1).join('/')}`,
-    }
-  })
-
-  return [{ title: 'Home', href: '/' }, ...breadcrumbs]
-}
-
-const links = ref<{
-  title: string
-  href: string
-}[]>(setLinks())
-
-watch(() => route.fullPath, (val) => {
-  if (val) {
-    links.value = setLinks()
-  }
+  return lastPath
+    .replaceAll('-', ' ')
+    .replace(/\b\w/g, char => char.toUpperCase())
 })
 </script>
 
 <template>
-  <header class="sticky top-0 md:peer-data-[variant=inset]:top-2 z-10 h-(--header-height) flex items-center gap-4 border-b bg-background px-4 md:px-6 md:rounded-tl-xl md:rounded-tr-xl">
-    <div class="w-full flex items-center gap-4 h-4">
-      <SidebarTrigger />
-      <Separator orientation="vertical" />
-      <BaseBreadcrumbCustom :links="links" />
+  <header class="flex h-12 shrink-0 items-center justify-between gap-2 border-b px-4">
+    <!-- Left: Sidebar toggle + breadcrumb -->
+    <div class="flex min-w-0 items-center gap-3">
+      <SidebarTrigger class="-ml-1" />
+
+      <Separator orientation="vertical" class="h-4" />
+
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">
+              Home
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
+          <BreadcrumbSeparator />
+
+          <BreadcrumbItem>
+            <BreadcrumbPage>
+              {{ routeName }}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
     </div>
-    <div class="ml-auto">
-      <slot />
+
+    <!-- Right: System name -->
+    <div class="hidden min-w-0 items-center gap-3 text-right md:flex">
+      <div class="leading-tight">
+        <div class="truncate text-sm font-semibold text-foreground">
+          ศูนย์บัญชาการสถานการณ์ฉุกเฉินและวิกฤติด้านน้ำมันเชื้อเพลิง
+        </div>
+        <div class="truncate text-xs text-muted-foreground">
+          กรมธุรกิจพลังงาน กระทรวงพลังงาน
+        </div>
+      </div>
     </div>
   </header>
 </template>
-
-<style scoped>
-
-</style>
