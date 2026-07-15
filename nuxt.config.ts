@@ -1,82 +1,87 @@
-import tailwindcss from '@tailwindcss/vite';
+import tailwindcss from "@tailwindcss/vite";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  runtimeConfig: {
+    directusUrl: '',
+    directusEmail: '',
+    directusPassword: '',
+  },
   devtools: { enabled: false },
 
-  css: ['~/assets/css/tailwind.css'],
+  css: ["~/assets/css/tailwind.css"],
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
   },
 
   components: [
     {
-      path: '~/components',
-      extensions: ['.vue']
-    }
+      path: "~/components",
+      extensions: [".vue"],
+    },
   ],
 
   modules: [
-    'shadcn-nuxt',
-    '@vueuse/nuxt',
-    '@nuxt/eslint',
-    '@nuxt/icon',
-    '@pinia/nuxt',
-    '@nuxtjs/color-mode',
-    '@nuxt/fonts',
-    '@nuxthub/core'
+    "shadcn-nuxt",
+    "@vueuse/nuxt",
+    "@nuxt/eslint",
+    "@nuxt/icon",
+    "@pinia/nuxt",
+    "@nuxtjs/color-mode",
+    "@nuxt/fonts",
+    "@nuxthub/core",
   ],
 
   shadcn: {
     /**
      * Prefix for all the imported component
      */
-    prefix: '',
+    prefix: "",
     /**
      * Directory that the component lives in.
      * @default "~/components/ui"
      */
-    componentDir: '~/components/ui'
+    componentDir: "~/components/ui",
   },
 
   colorMode: {
-    classSuffix: ''
+    classSuffix: "",
   },
 
   eslint: {
     config: {
-      standalone: false
-    }
+      standalone: false,
+    },
   },
 
   fonts: {
     defaults: {
-      weights: [300, 400, 500, 600, 700, 800]
-    }
+      weights: [300, 400, 500, 600, 700, 800],
+    },
   },
 
   routeRules: {
-    '/components': { redirect: '/components/accordion' },
-    '/settings': { redirect: '/settings/profile' }
+    "/components": { redirect: "/components/accordion" },
+    "/settings": { redirect: "/settings/profile" },
   },
 
   imports: {
-    dirs: ['./lib']
+    dirs: ["./lib"],
   },
 
-  compatibilityDate: '2026-03-13',
+  compatibilityDate: "2026-03-13",
 
   nitro: {
     prerender: {
       ignore: [
-        '/examples/forms',
-        '/terms',
-        '/privacy',
-        '/components/pagination',
-        '/docs'
-      ]
-    }
+        "/examples/forms",
+        "/terms",
+        "/privacy",
+        "/components/pagination",
+        "/docs",
+      ],
+    },
   },
   app: {
-    baseURL: '/'
-  }
+    baseURL: "/",
+  },
 });
