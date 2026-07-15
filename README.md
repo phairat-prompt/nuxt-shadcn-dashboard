@@ -7,6 +7,10 @@
 ## Install leaflet
 1. `pnpm add leaflet`.
 2. `pnpm add -D @types/leaflet`.
+3. `pnpm add leaflet.markercluster`.
+4. `pnpm add -D @types/leaflet.markercluster`.
+
+
 
 
 ## App Settings
