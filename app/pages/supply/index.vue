@@ -6,8 +6,6 @@ type SaleRow = {
   color: string
   diesel: string
   benzine: string
-  dieselId?: string
-  benzineId?: string
 }
 
 const points = {
@@ -29,55 +27,41 @@ const points = {
 const saleRows: SaleRow[] = [
   {
     label: 'อื่นๆ',
-    color: 'greenx',
+    color: 'legend-other',
     diesel: points.T01,
     benzine: points.T02,
-    dieselId: 'T-01',
-    benzineId: 'T-02',
   },
   {
     label: 'ราชการและรัฐวิสาหกิจ',
-    color: 'bluex',
+    color: 'legend-government',
     diesel: points.T03,
     benzine: points.T04,
-    dieselId: 'T-03',
-    benzineId: 'T-04',
   },
   {
     label: 'ไฟฟ้า',
-    color: 'yellowx',
+    color: 'legend-electricity',
     diesel: '-',
     benzine: '-',
   },
   {
     label: 'อุตสาหกรรม',
-    color: 'grayx',
+    color: 'legend-industry',
     diesel: points.T01,
     benzine: points.T02,
-    dieselId: 'T-01',
-    benzineId: 'T-02',
   },
   {
     label: 'ขนส่ง',
-    color: 'orangex',
+    color: 'legend-transport',
     diesel: points.T03,
     benzine: points.T04,
-    dieselId: 'T-03',
-    benzineId: 'T-04',
   },
   {
     label: 'สถานีบริการ',
-    color: 'orangex',
+    color: 'legend-station',
     diesel: points.T05,
     benzine: points.T06,
-    dieselId: 'T-05',
-    benzineId: 'T-06',
   },
 ]
-
-function pointLink(id: string) {
-  return `/monitor?point=${encodeURIComponent(id)}`
-}
 
 function barHeight(value: string) {
   const max = 22
@@ -90,10 +74,6 @@ function barHeight(value: string) {
 const Value = defineComponent({
   name: 'PointValue',
   props: {
-    id: {
-      type: String,
-      required: true,
-    },
     value: {
       type: String,
       required: true,
@@ -102,12 +82,9 @@ const Value = defineComponent({
   setup(props) {
     return () =>
       h(
-        'a',
+        'span',
         {
-          href: pointLink(props.id),
-          class:
-            'font-extrabold tabular-nums text-primary underline decoration-primary/40 underline-offset-2 transition-colors hover:text-primary/80',
-          'aria-label': `เปิดรายละเอียด ${props.id}`,
+          class: 'point-value',
         },
         props.value,
       )
@@ -188,7 +165,7 @@ const InfoBlock = defineComponent({
     <main class="supply-grid">
       <!-- การจัดหาน้ำมันดิบ -->
       <section class="min-w-0">
-        <h2 class="section-title bg-[#09256e]">
+        <h2 class="section-title title-crude">
           การจัดหาน้ำมันดิบ
         </h2>
 
@@ -198,7 +175,7 @@ const InfoBlock = defineComponent({
               class="mb-2 mt-0 text-[clamp(14px,0.9vw,17px)] font-bold text-foreground"
             >
               เข้ากลั่น
-              <Value id="A-07" :value="points.A07" />
+              <Value :value="points.A07" />
               ลล.
             </h3>
 
@@ -229,13 +206,13 @@ const InfoBlock = defineComponent({
             <InfoBlock title="สต๊อก ถังเก็บน้ำมันพื้นฐาน">
               <li>
                 ดีเซลพื้นฐาน
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li>
                 เบนซินพื้นฐาน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
 
@@ -245,13 +222,13 @@ const InfoBlock = defineComponent({
 
               <li class="muted">
                 ดีเซลพื้นฐาน
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li class="muted">
                 เบนซินพื้นฐาน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -263,13 +240,13 @@ const InfoBlock = defineComponent({
             <InfoBlock title="ส่งออก สปป.ลาว และเมียนมา">
               <li>
                 ดีเซลพื้นฐาน
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li>
                 เบนซินพื้นฐาน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
 
@@ -279,13 +256,13 @@ const InfoBlock = defineComponent({
 
               <li class="muted">
                 ดีเซลพื้นฐาน
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li class="muted">
                 เบนซินพื้นฐาน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -295,7 +272,7 @@ const InfoBlock = defineComponent({
 
       <!-- การผลิตน้ำมันสำเร็จรูป -->
       <section class="min-w-0">
-        <h2 class="section-title bg-[#05008b]">
+        <h2 class="section-title title-production">
           การผลิตน้ำมันสำเร็จรูป
         </h2>
 
@@ -304,24 +281,24 @@ const InfoBlock = defineComponent({
             <InfoBlock title="การผลิตของโรงกลั่น">
               <li>
                 ดีเซลพื้นฐาน
-                <Value id="A-01" :value="points.A01" />
+                <Value :value="points.A01" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-02" :value="points.A02" />
+                  <Value :value="points.A02" />
                   ลล.)
                 </span>
               </li>
 
               <li>
                 เบนซินพื้นฐาน
-                <Value id="A-03" :value="points.A03" />
+                <Value :value="points.A03" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-04" :value="points.A04" />
+                  <Value :value="points.A04" />
                   ลล.)
                 </span>
               </li>
@@ -330,13 +307,13 @@ const InfoBlock = defineComponent({
             <InfoBlock title="เฉลี่ย ม.ค. 2569" muted>
               <li>
                 ดีเซลพื้นฐาน
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li>
                 เบนซินพื้นฐาน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -348,13 +325,13 @@ const InfoBlock = defineComponent({
             <InfoBlock title="สต๊อก ถังเก็บน้ำมันผสม">
               <li>
                 กลุ่มดีเซล
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li>
                 กลุ่มเบนซิน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -362,20 +339,20 @@ const InfoBlock = defineComponent({
             <InfoBlock title="เฉลี่ย ม.ค. 2569" muted>
               <li>
                 กลุ่มดีเซล
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li>
                 กลุ่มเบนซิน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
           </CardContent>
         </Card>
 
-        <!-- แถว Icon การขนส่ง -->
+        <!-- เส้นทางการขนส่ง -->
         <div class="flow-row">
           <Icon
             name="i-mdi-truck"
@@ -409,24 +386,24 @@ const InfoBlock = defineComponent({
             <InfoBlock title="การผลิต (รวมคลังโรงกลั่น + คลังภูมิภาค)">
               <li>
                 กลุ่มดีเซล
-                <Value id="A-01" :value="points.A01" />
+                <Value :value="points.A01" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-02" :value="points.A02" />
+                  <Value :value="points.A02" />
                   ลล.)
                 </span>
               </li>
 
               <li>
                 กลุ่มเบนซิน
-                <Value id="A-03" :value="points.A03" />
+                <Value :value="points.A03" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-04" :value="points.A04" />
+                  <Value :value="points.A04" />
                   ลล.)
                 </span>
               </li>
@@ -435,13 +412,13 @@ const InfoBlock = defineComponent({
             <InfoBlock title="เฉลี่ย ม.ค. 2569" muted>
               <li>
                 กลุ่มดีเซล
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li>
                 กลุ่มเบนซิน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -453,13 +430,13 @@ const InfoBlock = defineComponent({
             <InfoBlock title="สต๊อก ผสมน้ำมันชีวภาพ">
               <li>
                 ไบโอดีเซล
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li>
                 เอทานอล
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -467,7 +444,7 @@ const InfoBlock = defineComponent({
             <InfoBlock title="ผู้ค้ามาตรา 7 จำหน่ายไปอุตสาหกรรมและอื่น ๆ">
               <li>
                 ดีเซลพื้นฐาน
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
@@ -477,7 +454,7 @@ const InfoBlock = defineComponent({
 
               <li class="muted">
                 ดีเซลพื้นฐาน
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
             </InfoBlock>
@@ -487,7 +464,7 @@ const InfoBlock = defineComponent({
 
       <!-- การกระจายน้ำมัน -->
       <section class="min-w-0">
-        <h2 class="section-title bg-[#087ac0]">
+        <h2 class="section-title title-distribution">
           การกระจายน้ำมัน
         </h2>
 
@@ -509,24 +486,24 @@ const InfoBlock = defineComponent({
             <InfoBlock title="ผู้ค้าตามมาตรา 7">
               <li>
                 ดีเซล
-                <Value id="A-01" :value="points.A01" />
+                <Value :value="points.A01" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-02" :value="points.A02" />
+                  <Value :value="points.A02" />
                   ลล.)
                 </span>
               </li>
 
               <li>
                 เบนซิน
-                <Value id="A-03" :value="points.A03" />
+                <Value :value="points.A03" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-04" :value="points.A04" />
+                  <Value :value="points.A04" />
                   ลล.)
                 </span>
               </li>
@@ -537,13 +514,13 @@ const InfoBlock = defineComponent({
 
               <li class="muted">
                 ดีเซล
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li class="muted">
                 เบนซิน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -555,7 +532,7 @@ const InfoBlock = defineComponent({
               />
 
               <span>
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 %
               </span>
             </div>
@@ -567,24 +544,24 @@ const InfoBlock = defineComponent({
             <InfoBlock title="ผู้ค้าส่ง (Jobber)">
               <li>
                 ดีเซล
-                <Value id="A-01" :value="points.A01" />
+                <Value :value="points.A01" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-02" :value="points.A02" />
+                  <Value :value="points.A02" />
                   ลล.)
                 </span>
               </li>
 
               <li>
                 เบนซิน
-                <Value id="A-03" :value="points.A03" />
+                <Value :value="points.A03" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-04" :value="points.A04" />
+                  <Value :value="points.A04" />
                   ลล.)
                 </span>
               </li>
@@ -595,13 +572,13 @@ const InfoBlock = defineComponent({
 
               <li class="muted">
                 ดีเซล
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li class="muted">
                 เบนซิน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -613,7 +590,7 @@ const InfoBlock = defineComponent({
               />
 
               <span>
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 %
               </span>
             </div>
@@ -623,24 +600,20 @@ const InfoBlock = defineComponent({
 
       <!-- การจำหน่าย -->
       <section class="sale-section min-w-0">
-        <h2 class="section-title bg-[#12aedc]">
+        <h2 class="section-title title-sale">
           การจำหน่าย
         </h2>
 
         <Card class="dashboard-card">
           <CardContent class="p-0">
-            <div
-              class="min-h-[445px] w-full border border-dashed border-foreground/40 p-3"
-            >
-              <div
-                class="flex justify-center gap-[clamp(30px,4vw,70px)] text-center text-[15px]"
-              >
+            <div class="sales-chart-container">
+              <div class="sales-chart-values">
                 <div>
                   <b class="block text-foreground">
                     ดีเซล
                   </b>
 
-                  <Value id="T-05" :value="points.T05" />
+                  <Value :value="points.T05" />
                 </div>
 
                 <div>
@@ -648,13 +621,11 @@ const InfoBlock = defineComponent({
                     เบนซิน
                   </b>
 
-                  <Value id="T-06" :value="points.T06" />
+                  <Value :value="points.T06" />
                 </div>
               </div>
 
-              <div
-                class="my-5 flex h-40 items-end justify-center gap-[clamp(20px,2vw,28px)]"
-              >
+              <div class="sales-bars">
                 <div class="stacked-bar">
                   <span
                     class="seg other"
@@ -662,7 +633,7 @@ const InfoBlock = defineComponent({
                   />
 
                   <span
-                    class="seg gov"
+                    class="seg government"
                     :style="{ height: barHeight(points.T03) }"
                   />
 
@@ -679,7 +650,7 @@ const InfoBlock = defineComponent({
                   />
 
                   <span
-                    class="seg gov"
+                    class="seg government"
                     :style="{ height: barHeight(points.T04) }"
                   />
 
@@ -718,8 +689,7 @@ const InfoBlock = defineComponent({
 
                       <td>
                         <Value
-                          v-if="row.dieselId"
-                          :id="row.dieselId"
+                          v-if="row.diesel !== '-'"
                           :value="row.diesel"
                         />
 
@@ -730,8 +700,7 @@ const InfoBlock = defineComponent({
 
                       <td>
                         <Value
-                          v-if="row.benzineId"
-                          :id="row.benzineId"
+                          v-if="row.benzine !== '-'"
                           :value="row.benzine"
                         />
 
@@ -752,24 +721,24 @@ const InfoBlock = defineComponent({
             <InfoBlock title="รวมจำหน่าย">
               <li>
                 ดีเซล
-                <Value id="A-01" :value="points.A01" />
+                <Value :value="points.A01" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-02" :value="points.A02" />
+                  <Value :value="points.A02" />
                   ลล.)
                 </span>
               </li>
 
               <li>
                 เบนซิน
-                <Value id="A-03" :value="points.A03" />
+                <Value :value="points.A03" />
                 ลล.
 
                 <span class="muted">
                   (เฉลี่ย มี.ค.
-                  <Value id="A-04" :value="points.A04" />
+                  <Value :value="points.A04" />
                   ลล.)
                 </span>
               </li>
@@ -780,13 +749,13 @@ const InfoBlock = defineComponent({
 
               <li class="muted">
                 ดีเซล
-                <Value id="A-05" :value="points.A05" />
+                <Value :value="points.A05" />
                 ลล.
               </li>
 
               <li class="muted">
                 เบนซิน
-                <Value id="A-06" :value="points.A06" />
+                <Value :value="points.A06" />
                 ลล.
               </li>
             </InfoBlock>
@@ -799,7 +768,44 @@ const InfoBlock = defineComponent({
 
 <style scoped>
 .overview-dashboard {
+  /*
+   * สีทั้งหมดอ้างอิงจาก Shadcn Theme
+   * เมื่อเปลี่ยน Light/Dark หรือเปลี่ยน Accent Theme
+   * กราฟและส่วนประกอบจะเปลี่ยนตามอัตโนมัติ
+   */
+  --pie-east: var(--chart-1, #8b5cf6);
+  --pie-middle: var(--chart-2, #f59e0b);
+  --pie-thai: var(--chart-3, #06b6d4);
+  --pie-other: var(--chart-4, #6366f1);
+
+  --fuel-other: var(--chart-2, #22c55e);
+  --fuel-government: var(--chart-4, #3b82f6);
+  --fuel-electricity: var(--chart-5, #eab308);
+  --fuel-industry: color-mix(
+    in oklab,
+    var(--muted-foreground) 58%,
+    var(--card)
+  );
+  --fuel-transport: var(--chart-1, #f97316);
+  --fuel-station: color-mix(
+    in oklab,
+    var(--chart-1, #f97316) 72%,
+    var(--primary)
+  );
+
+  width: 100%;
+  min-width: 0;
+  color: var(--foreground);
   font-family: Tahoma, Arial, sans-serif;
+}
+
+.point-value {
+  color: var(--primary);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  cursor: default;
+  transition: color 200ms ease;
 }
 
 .supply-grid {
@@ -820,23 +826,72 @@ const InfoBlock = defineComponent({
   align-items: center;
   justify-content: center;
   margin: 0;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--primary) 38%,
+      var(--border)
+    );
   border-radius: var(--radius) var(--radius) 0 0;
-  color: white;
+  color: var(--primary-foreground);
   font-size: clamp(20px, 1.9vw, 36px);
   font-weight: 800;
   line-height: 1;
   text-align: center;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.title-crude {
+  background: color-mix(
+    in oklab,
+    var(--primary) 82%,
+    var(--background)
+  );
+}
+
+.title-production {
+  background: var(--primary);
+}
+
+.title-distribution {
+  background: color-mix(
+    in oklab,
+    var(--primary) 72%,
+    var(--chart-2, #0ea5e9)
+  );
+}
+
+.title-sale {
+  background: color-mix(
+    in oklab,
+    var(--primary) 52%,
+    var(--chart-3, #06b6d4)
+  );
 }
 
 .dashboard-card {
   margin-top: 0.375rem;
   min-width: 0;
-  border-color: color-mix(in oklab, var(--border) 86%, transparent);
+  border-color: color-mix(
+    in oklab,
+    var(--border) 86%,
+    transparent
+  );
   border-radius: var(--radius);
-  padding: clamp(10px, 1vw, 16px) clamp(12px, 1.2vw, 22px);
+  padding:
+    clamp(10px, 1vw, 16px)
+    clamp(12px, 1.2vw, 22px);
   background: var(--card);
   color: var(--card-foreground);
   box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
 
 .two-column {
@@ -855,6 +910,10 @@ const InfoBlock = defineComponent({
   color: var(--muted-foreground);
 }
 
+/* =========================
+   Pie chart
+   ========================= */
+
 .pie-wrap {
   position: relative;
   width: min(100%, 300px);
@@ -870,19 +929,33 @@ const InfoBlock = defineComponent({
   max-width: 78%;
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 80%,
+      transparent
+    );
   border-radius: 50%;
   background: conic-gradient(
-    #8b6dbc 0 24.25%,
-    #ffa14b 24.25% 43.8%,
-    #58bfd2 43.8% 67.15%,
-    #5b4777 67.15% 100%
+    var(--pie-east) 0 24.25%,
+    var(--pie-middle) 24.25% 43.8%,
+    var(--pie-thai) 43.8% 67.15%,
+    var(--pie-other) 67.15% 100%
   );
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
 
 .pie-label {
   position: absolute;
+  z-index: 1;
   color: var(--foreground);
   font-size: clamp(11px, 0.75vw, 13px);
+  font-weight: 600;
+  transition: color 200ms ease;
 }
 
 .east {
@@ -906,7 +979,7 @@ const InfoBlock = defineComponent({
 }
 
 /* =========================
-   Flow Icons
+   Flow icons
    ========================= */
 
 .flow-row {
@@ -930,6 +1003,10 @@ const InfoBlock = defineComponent({
     var(--card)
   );
   color: var(--foreground);
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease;
 }
 
 .flow-icon {
@@ -964,6 +1041,7 @@ const InfoBlock = defineComponent({
     var(--foreground) 82%,
     transparent
   );
+  transition: background-color 200ms ease;
 }
 
 .flow-line-long {
@@ -974,6 +1052,44 @@ const InfoBlock = defineComponent({
    Sales chart
    ========================= */
 
+.sales-chart-container {
+  width: 100%;
+  min-height: 445px;
+  padding: 0.75rem;
+  border: 1px dashed
+    color-mix(
+      in oklab,
+      var(--foreground) 38%,
+      transparent
+    );
+  background: color-mix(
+    in oklab,
+    var(--card) 96%,
+    var(--muted)
+  );
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.sales-chart-values {
+  display: flex;
+  justify-content: center;
+  gap: clamp(30px, 4vw, 70px);
+  color: var(--foreground);
+  font-size: 15px;
+  text-align: center;
+}
+
+.sales-bars {
+  display: flex;
+  height: 160px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(20px, 2vw, 28px);
+  margin: 1.25rem 0;
+}
+
 .stacked-bar {
   display: flex;
   width: clamp(70px, 5vw, 92px);
@@ -981,27 +1097,45 @@ const InfoBlock = defineComponent({
   flex-direction: column-reverse;
   justify-content: flex-start;
   overflow: hidden;
-  border-bottom: 1px solid
-    color-mix(in oklab, var(--foreground) 60%, transparent);
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 85%,
+      transparent
+    );
+  border-top: 0;
+  background: color-mix(
+    in oklab,
+    var(--muted) 30%,
+    transparent
+  );
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
 }
 
 .seg {
   display: block;
   width: 100%;
   min-height: 3px;
+  transition: background-color 200ms ease;
 }
 
 .seg.other {
-  background: #62b34f;
+  background: var(--fuel-other);
 }
 
-.seg.gov {
-  background: #4f73bd;
+.seg.government {
+  background: var(--fuel-government);
 }
 
 .seg.transport {
-  background: #ed7d31;
+  background: var(--fuel-transport);
 }
+
+/* =========================
+   Table
+   ========================= */
 
 .fuel-table {
   width: 100%;
@@ -1017,7 +1151,22 @@ const InfoBlock = defineComponent({
   padding: 5px 6px;
   border: 1px solid var(--border);
   background: var(--card);
+  color: var(--card-foreground);
   text-align: center;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.fuel-table thead th {
+  background: color-mix(
+    in oklab,
+    var(--muted) 70%,
+    var(--card)
+  );
+  color: var(--foreground);
+  font-weight: 800;
 }
 
 .fuel-table th:first-child,
@@ -1031,27 +1180,44 @@ const InfoBlock = defineComponent({
   width: 11px;
   height: 11px;
   flex: 0 0 11px;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--foreground) 14%,
+      transparent
+    );
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
 }
 
-.greenx {
-  background: #62b34f;
+.legend-other {
+  background: var(--fuel-other);
 }
 
-.bluex {
-  background: #4f73bd;
+.legend-government {
+  background: var(--fuel-government);
 }
 
-.yellowx {
-  background: #ffc000;
+.legend-electricity {
+  background: var(--fuel-electricity);
 }
 
-.grayx {
-  background: #a6a6a6;
+.legend-industry {
+  background: var(--fuel-industry);
 }
 
-.orangex {
-  background: #ed7d31;
+.legend-transport {
+  background: var(--fuel-transport);
 }
+
+.legend-station {
+  background: var(--fuel-station);
+}
+
+/* =========================
+   Responsive
+   ========================= */
 
 @media (max-width: 1500px) {
   .supply-grid {
@@ -1132,6 +1298,14 @@ const InfoBlock = defineComponent({
 
   .stacked-bar {
     width: 4rem;
+  }
+
+  .sales-chart-container {
+    padding: 0.5rem;
+  }
+
+  .sales-chart-values {
+    gap: 2.5rem;
   }
 }
 </style>
