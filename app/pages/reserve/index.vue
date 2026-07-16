@@ -153,7 +153,7 @@ const refineryShare = [
   {
     name: 'PTT GC',
     value: 15,
-    color: 'var(--destructive)',
+    color: 'var(--accent-green)',
   },
   {
     name: 'SPRC',
@@ -237,7 +237,11 @@ const thailandPosition: LatLngExpression = [
 const mapPalettes = {
   light: {
     green: '#059669',
-    red: '#e11d48',
+
+    // Middle East / Far East
+    // ใช้เขียวมะกอกแทนสีแดงเดิม
+    red: '#65a30d',
+
     blue: '#0284c7',
 
     sourceFill: '#ffffff',
@@ -249,7 +253,10 @@ const mapPalettes = {
 
   dark: {
     green: '#35f59a',
-    red: '#ff4f7d',
+
+    // Middle East / Far East ใน Dark Theme
+    red: '#a3e635',
+
     blue: '#28baf2',
 
     sourceFill: '#f8fafc',
@@ -361,10 +368,6 @@ function createTileLayers(
     keepBuffer: 2,
   }
 
-  /*
-   * เพิ่ม Light และ Dark ไว้พร้อมกัน
-   * เปลี่ยน Theme ด้วย opacity จึงไม่โหลดแผนที่ใหม่
-   */
   lightTileLayer = L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     {
@@ -496,10 +499,6 @@ function applyMapTheme() {
     ? mapPalettes.dark
     : mapPalettes.light
 
-  /*
-   * ไม่ลบ Tile Layer
-   * ปรับ opacity เท่านั้น ป้องกันแผนที่กระพริบ
-   */
   lightTileLayer.setOpacity(
     isDark ? 0 : 1,
   )
@@ -572,17 +571,10 @@ async function initWorldMap() {
 
       worldCopyJump: true,
 
-      /*
-       * ลดการกระพริบระหว่างเปลี่ยน Theme
-       */
       fadeAnimation: false,
       zoomAnimation: true,
       markerZoomAnimation: true,
 
-      /*
-       * ใช้ Pane มาตรฐานของ Leaflet
-       * ไม่สร้าง z-index ใหม่
-       */
       preferCanvas: false,
     },
   )
@@ -633,11 +625,6 @@ async function initWorldMap() {
   resizeObserver.observe(worldMapEl.value)
 }
 
-/*
- * เปลี่ยนเฉพาะสีและ Tile
- * ไม่ invalidateSize ขณะเปิด Customizer
- * จึงไม่ทำให้แผนที่ลอยหรือขยายทับหน้าจอ
- */
 watch(
   themeClass,
   async () => {
@@ -686,7 +673,6 @@ onBeforeUnmount(() => {
 
       <div class="flex items-center space-x-2">
         <BaseDateRangePicker />
-        <!-- <Button>Download</Button> -->
       </div>
     </div>
 
@@ -779,7 +765,6 @@ onBeforeUnmount(() => {
           </article>
         </div>
 
-        <!-- Map wrapper -->
         <div class="map-frame">
           <div
             ref="worldMapEl"
@@ -926,11 +911,47 @@ onBeforeUnmount(() => {
   --primary-color: var(--primary);
   --track: var(--muted);
 
-  --success-color: var(--chart-2);
-  --danger-color: var(--destructive);
-  --warning-color: var(--chart-3);
-  --info-color: var(--primary);
-  --neutral-color: var(--chart-4);
+  /*
+   * ใช้โทนเขียวตาม Theme
+   * แทน destructive สีแดงเดิม
+   */
+  --accent-green:
+    color-mix(
+      in oklab,
+      var(--primary) 68%,
+      var(--chart-3, #84cc16)
+    );
+
+  --accent-green-soft:
+    color-mix(
+      in oklab,
+      var(--primary) 52%,
+      var(--chart-3, #84cc16)
+    );
+
+  --success-color: var(--primary);
+  --danger-color: var(--accent-green);
+
+  --warning-color:
+    color-mix(
+      in oklab,
+      var(--primary) 78%,
+      var(--chart-2, #22c55e)
+    );
+
+  --info-color:
+    color-mix(
+      in oklab,
+      var(--primary) 82%,
+      var(--chart-1, #14b8a6)
+    );
+
+  --neutral-color:
+    color-mix(
+      in oklab,
+      var(--primary) 62%,
+      var(--muted-foreground)
+    );
 
   width: 100%;
   min-height: 100%;
@@ -1249,10 +1270,6 @@ onBeforeUnmount(() => {
 /* -------------------------------------------------------------------------- */
 
 .map-frame {
-  /*
-   * จำกัด stacking context ของ Leaflet
-   * ไม่ให้ pane หรือ control ลอยทับ Template Customizer
-   */
   position: relative;
   z-index: 0;
 
@@ -1473,8 +1490,9 @@ onBeforeUnmount(() => {
   background: #059669;
 }
 
+/* เปลี่ยนจากสีแดงเป็นเขียวมะกอก */
 .red-line {
-  background: #e11d48;
+  background: #65a30d;
 }
 
 .blue-line {
@@ -1486,7 +1504,7 @@ onBeforeUnmount(() => {
 }
 
 .reserve-dashboard.dark .red-line {
-  background: #ff4f7d;
+  background: #a3e635;
 }
 
 .reserve-dashboard.dark .blue-line {
@@ -1531,6 +1549,10 @@ onBeforeUnmount(() => {
   height: 100%;
 
   border-radius: inherit;
+
+  transition:
+    width 200ms ease,
+    background-color 200ms ease;
 }
 
 .progress-fill.other {
@@ -1538,7 +1560,7 @@ onBeforeUnmount(() => {
 }
 
 .progress-fill.middle-east {
-  background: var(--danger-color);
+  background: var(--accent-green);
 }
 
 .source-legend {
@@ -1574,7 +1596,7 @@ onBeforeUnmount(() => {
 }
 
 .middle-east-dot {
-  background: var(--danger-color);
+  background: var(--accent-green);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1597,6 +1619,8 @@ onBeforeUnmount(() => {
   aspect-ratio: 1;
 
   border-radius: 50%;
+
+  transition: background 200ms ease;
 }
 
 .donut-hole {
@@ -1654,6 +1678,28 @@ onBeforeUnmount(() => {
 
 .donut-legend-row strong {
   margin-left: -5px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Theme transition                                                           */
+/* -------------------------------------------------------------------------- */
+
+.reserve-dashboard,
+.summary-card,
+.import-card,
+.panel,
+.date-pill,
+.progress-track,
+.progress-fill,
+.legend-dot,
+.map-legend-line,
+.donut-hole,
+.donut-legend-row i {
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 }
 
 /* -------------------------------------------------------------------------- */

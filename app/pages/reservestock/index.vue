@@ -84,8 +84,9 @@ const reserveItems: ReserveItem[] = [
 ]
 
 /*
- * เรียงตามต้นฉบับ:
- * แดงบนขวา → ฟ้าล่างขวา → เทาล่างซ้าย → เหลืองบนซ้าย
+ * เรียงตำแหน่งตามต้นฉบับ:
+ * กฎหมายบนขวา → การค้าล่างขวา → ระหว่างขนส่งล่างซ้าย
+ * → ยืนยันการจัดหาบนซ้าย
  */
 const donutOrder: ReserveKey[] = [
   'legal',
@@ -394,29 +395,34 @@ function formatVolume(value: number) {
   --primary-color: var(--primary);
 
   /*
-   * สีข้อมูลอ้างอิง Theme หลัก
-   * จะเปลี่ยนตาม Light/Dark และ Accent Color
+   * ใช้โทนสีเดียวกับ Theme หลัก
+   * ไม่มีการใช้ var(--destructive) จึงไม่มีสีแดงโดด
    */
   --reserve-procurement:
     color-mix(
       in oklab,
-      var(--chart-3) 78%,
+      var(--chart-3, #84cc16) 72%,
       var(--primary)
     );
 
   --reserve-transit:
     color-mix(
       in oklab,
-      var(--muted-foreground) 78%,
-      var(--foreground)
+      var(--muted-foreground) 64%,
+      var(--primary)
     );
 
-  --reserve-legal: var(--destructive);
+  --reserve-legal:
+    color-mix(
+      in oklab,
+      var(--primary) 66%,
+      var(--chart-2, #22c55e)
+    );
 
   --reserve-trade:
     color-mix(
       in oklab,
-      var(--chart-1) 72%,
+      var(--chart-1, #14b8a6) 68%,
       var(--primary)
     );
 
@@ -941,6 +947,28 @@ function formatVolume(value: number) {
 
 .legend-row strong {
   font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Theme transition                                                           */
+/* -------------------------------------------------------------------------- */
+
+.reserve-stock-page,
+.reserve-panel,
+.title-marker,
+.donut-segment,
+.donut-center,
+.callout,
+.thai-map-svg :deep(path),
+.thai-map-svg :deep(polygon),
+.legend-row i {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    fill 180ms ease,
+    stroke 180ms ease,
+    opacity 180ms ease;
 }
 
 /* -------------------------------------------------------------------------- */
