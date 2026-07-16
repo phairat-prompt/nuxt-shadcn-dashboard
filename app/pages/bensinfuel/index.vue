@@ -212,7 +212,7 @@ const DataTable = defineComponent({
 
               <div class="gasoline-sales-tables">
                 <DataTable
-                  variant="purple"
+                  variant="blue"
                   :columns="[
                     'บริษัท',
                     'สถิติเฉลี่ย ม.ค.',
