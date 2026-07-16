@@ -5,10 +5,6 @@
         <h2 class="text-2xl font-bold tracking-tight">
           การผลิตและจำหน่ายดีเซลหมุนเร็ว
         </h2>
-
-        <!-- <p class="text-sm text-muted-foreground">
-          ภาพรวมการกลั่น การผสม การจำหน่าย และการส่งออก · หน่วย: ล้านลิตร
-        </p> -->
       </div>
 
       <div class="shrink-0">
@@ -18,144 +14,230 @@
 
     <Card class="production-card">
       <CardContent class="p-0">
-        <div ref="stageWrapper" class="stage-wrapper">
-          <div class="stage-canvas" :style="canvasStyle">
-            <div class="production-stage" :style="stageStyle">
-          <div class="unit-label">หน่วย: ลล. = ล้านลิตร</div>
-
-          <!-- Top notes -->
-          <div class="top-note byproduct-note">
-            <div class="top-note-card">
-              <h3>ผลิตภัณฑ์อื่นที่ได้จากการกลั่น</h3>
-              <p>เช่น เบนซิน น้ำมันเตา LPG ยางมะตอย</p>
-            </div>
-
-            <div class="arrow-up"></div>
-          </div>
-
-          <div class="top-note biodiesel-note">
-            <div class="top-note-card">
-              <h3>เติมไบโอดีเซล</h3>
-              <strong>2.189 <span>ลล.</span></strong>
-            </div>
-
-            <div class="arrow-down-green"></div>
-          </div>
-
-          <!-- Main flow -->
-          <div class="node crude-node">
-            <h2>น้ำมันดิบ</h2>
-            <p>เข้ากลั่น</p>
-            <strong>176.806 <span>ลล.</span></strong>
-          </div>
-
-          <div class="h-arrow arrow-crude-refinery"></div>
-
-          <div class="node refinery-node">
-            <h2>โรงกลั่น</h2>
-            <p>ผลิตดีเซลพื้นฐาน</p>
-            <strong>72.721 <span>ลล.</span></strong>
-          </div>
-
-          <div class="h-arrow arrow-refinery-trader"></div>
-
-          <!-- ลูกศรลง: โรงกลั่น -> ส่งออก -->
-          <div class="v-arrow arrow-refinery-export"></div>
-
-          <!-- ลูกศรลง: โรงกลั่น/ผู้ค้า -> จำหน่ายภาคอุตสาหกรรม -->
-          <div class="v-arrow arrow-industry"></div>
-
-          <div class="node trader-node">
-            <h2>ผู้ค้าน้ำมันรายใหญ่</h2>
-            <p>(โรงกลั่นและผู้ค้าน้ำมันตามมาตรา 7)</p>
-            <p class="strong-line">
-              ผลิตดีเซลหมุนเร็ว
-              <strong>31.432 <span>ลล.</span></strong>
-            </p>
-          </div>
-
-          <div class="h-arrow arrow-trader-customer"></div>
-
-          <div class="node customer-node">
-            <h2>ลูกค้าปลายทาง</h2>
-            <p>ปริมาณจำหน่ายดีเซลหมุนเร็ว</p>
-            <strong>29.364 <span>ลล.</span></strong>
-            <p class="avg">(เฉลี่ย ม.ค. – ก.พ. : 69.862 ลล.)</p>
-          </div>
-
-          <!-- Source bars -->
-          <section class="source-section">
-            <div v-for="item in crudeSources" :key="item.label" class="source-row">
-              <div class="source-label">
-                <span v-if="item.flag" class="flag">{{ item.flag }}</span>
-                <span>{{ item.label }}</span>
-                <small v-if="item.sub">{{ item.sub }}</small>
+        <div
+          ref="stageWrapper"
+          class="stage-wrapper"
+        >
+          <div
+            class="stage-canvas"
+            :style="canvasStyle"
+          >
+            <div
+              class="production-stage"
+              :style="stageStyle"
+            >
+              <div class="unit-label">
+                หน่วย: ลล. = ล้านลิตร
               </div>
 
-              <div class="bar-track">
-                <div class="bar-fill" :style="{ width: `${item.value}%` }">
-                  {{ item.value }}%
+              <!-- ผลิตภัณฑ์อื่นจากการกลั่น -->
+              <div class="top-note byproduct-note">
+                <div class="top-note-card">
+                  <h3>ผลิตภัณฑ์อื่นที่ได้จากการกลั่น</h3>
+                  <p>เช่น เบนซิน น้ำมันเตา LPG ยางมะตอย</p>
                 </div>
+
+                <div class="arrow-up" />
               </div>
-            </div>
-          </section>
 
-          <!-- Middle blocks -->
-          <section class="transport-box">
-            <h3>การขนส่ง</h3>
+              <!-- เติมไบโอดีเซล -->
+              <div class="top-note biodiesel-note">
+                <div class="top-note-card">
+                  <h3>เติมไบโอดีเซล</h3>
 
-            <div v-for="item in transport" :key="item.label" class="transport-row">
-              <span class="transport-icon">{{ item.icon }}</span>
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}%</strong>
-            </div>
-          </section>
+                  <strong>
+                    2.189
+                    <span>ลล.</span>
+                  </strong>
+                </div>
 
-          <section class="industry-box">
-            <h2>จำหน่ายภาคอุตสาหกรรม</h2>
-            <p>เช่น โรงไฟฟ้า เรือเดินสมุทร</p>
-            <strong>0.024 <span>ลล.</span></strong>
-          </section>
+                <div class="arrow-down-theme" />
+              </div>
 
-          <section class="export-box">
-            <div class="truck">🚚</div>
+              <!-- น้ำมันดิบ -->
+              <div class="node crude-node">
+                <h2>น้ำมันดิบ</h2>
+                <p>เข้ากลั่น</p>
 
-            <div>
-              <h2>ส่งออก</h2>
-              <p>สปป.ลาว+เมียนมา</p>
-              <strong>1.645 <span>ลล.</span></strong>
-            </div>
-          </section>
+                <strong>
+                  176.806
+                  <span>ลล.</span>
+                </strong>
+              </div>
 
-          <!-- Sales table -->
-          <section class="sales-section">
-            <table class="sales-table">
-              <thead>
-                <tr>
-                  <th>จำหน่ายให้สาขา</th>
-                  <th>เฉลี่ย ม.ค.</th>
-                  <th>ปริมาณ</th>
-                </tr>
-              </thead>
+              <div class="h-arrow arrow-crude-refinery" />
 
-              <tbody>
-                <tr v-for="row in salesRows" :key="row.name">
-                  <td>
-                    <div class="sale-name">
-                      <span class="sale-icon">{{ row.icon }}</span>
+              <!-- โรงกลั่น -->
+              <div class="node refinery-node">
+                <h2>โรงกลั่น</h2>
+                <p>ผลิตดีเซลพื้นฐาน</p>
 
-                      <div>
-                        <b>{{ row.name }}</b>
-                        <small v-if="row.note">{{ row.note }}</small>
-                      </div>
+                <strong>
+                  72.721
+                  <span>ลล.</span>
+                </strong>
+              </div>
+
+              <div class="h-arrow arrow-refinery-trader" />
+
+              <!-- โรงกลั่นไปส่งออก -->
+              <div class="v-arrow arrow-refinery-export" />
+
+              <!-- ไปภาคอุตสาหกรรม -->
+              <div class="v-arrow arrow-industry" />
+
+              <!-- ผู้ค้าน้ำมัน -->
+              <div class="node trader-node">
+                <h2>ผู้ค้าน้ำมันรายใหญ่</h2>
+                <p>(โรงกลั่นและผู้ค้าน้ำมันตามมาตรา 7)</p>
+
+                <p class="strong-line">
+                  ผลิตดีเซลหมุนเร็ว
+
+                  <strong>
+                    31.432
+                    <span>ลล.</span>
+                  </strong>
+                </p>
+              </div>
+
+              <div class="h-arrow arrow-trader-customer" />
+
+              <!-- ลูกค้าปลายทาง -->
+              <div class="node customer-node">
+                <h2>ลูกค้าปลายทาง</h2>
+                <p>ปริมาณจำหน่ายดีเซลหมุนเร็ว</p>
+
+                <strong>
+                  29.364
+                  <span>ลล.</span>
+                </strong>
+
+                <p class="avg">
+                  (เฉลี่ย ม.ค. – ก.พ. : 69.862 ลล.)
+                </p>
+              </div>
+
+              <!-- แหล่งน้ำมันดิบ -->
+              <section class="source-section">
+                <div
+                  v-for="item in crudeSources"
+                  :key="item.label"
+                  class="source-row"
+                >
+                  <div class="source-label">
+                    <span
+                      v-if="item.flag"
+                      class="flag"
+                    >
+                      {{ item.flag }}
+                    </span>
+
+                    <span>{{ item.label }}</span>
+
+                    <small v-if="item.sub">
+                      {{ item.sub }}
+                    </small>
+                  </div>
+
+                  <div class="bar-track">
+                    <div
+                      class="bar-fill"
+                      :style="{ width: `${item.value}%` }"
+                    >
+                      {{ item.value }}%
                     </div>
-                  </td>
-                  <td>{{ row.avg }}</td>
-                  <td>{{ row.value }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+                  </div>
+                </div>
+              </section>
+
+              <!-- การขนส่ง -->
+              <section class="transport-box">
+                <h3>การขนส่ง</h3>
+
+                <div
+                  v-for="item in transport"
+                  :key="item.label"
+                  class="transport-row"
+                >
+                  <span class="transport-icon">
+                    {{ item.icon }}
+                  </span>
+
+                  <span>{{ item.label }}</span>
+
+                  <strong>
+                    {{ item.value }}%
+                  </strong>
+                </div>
+              </section>
+
+              <!-- ภาคอุตสาหกรรม -->
+              <section class="industry-box">
+                <h2>จำหน่ายภาคอุตสาหกรรม</h2>
+                <p>เช่น โรงไฟฟ้า เรือเดินสมุทร</p>
+
+                <strong>
+                  0.024
+                  <span>ลล.</span>
+                </strong>
+              </section>
+
+              <!-- ส่งออก -->
+              <section class="export-box">
+                <div class="truck">
+                  🚚
+                </div>
+
+                <div>
+                  <h2>ส่งออก</h2>
+                  <p>สปป.ลาว+เมียนมา</p>
+
+                  <strong>
+                    1.645
+                    <span>ลล.</span>
+                  </strong>
+                </div>
+              </section>
+
+              <!-- ตารางจำหน่าย -->
+              <section class="sales-section">
+                <table class="sales-table">
+                  <thead>
+                    <tr>
+                      <th>จำหน่ายให้สาขา</th>
+                      <th>เฉลี่ย ม.ค.</th>
+                      <th>ปริมาณ</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr
+                      v-for="row in salesRows"
+                      :key="row.name"
+                    >
+                      <td>
+                        <div class="sale-name">
+                          <span class="sale-icon">
+                            {{ row.icon }}
+                          </span>
+
+                          <div>
+                            <b>{{ row.name }}</b>
+
+                            <small v-if="row.note">
+                              {{ row.note }}
+                            </small>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td>{{ row.avg }}</td>
+                      <td>{{ row.value }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
             </div>
           </div>
         </div>
@@ -165,16 +247,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from 'vue'
 
 const CANVAS_WIDTH = 1680
 const CANVAS_HEIGHT = 860
 
-// ถ้าจอเล็กมาก จะไม่ย่อจนเล็กเกินอ่าน
-// ลดเป็น 0.45 ถ้าอยากให้มือถือเห็นกว้างขึ้น
 const MIN_READABLE_SCALE = 0.55
-
-// เผื่อพื้นที่ header/sidebar ของ layout หลัก
 const VIEWPORT_HEIGHT_OFFSET = 190
 
 const stageWrapper = ref<HTMLElement | null>(null)
@@ -183,17 +267,27 @@ const scale = ref(1)
 let resizeObserver: ResizeObserver | null = null
 
 const updateScale = () => {
-  const wrapperWidth = stageWrapper.value?.clientWidth || CANVAS_WIDTH
-  const availableHeight = Math.max(520, window.innerHeight - VIEWPORT_HEIGHT_OFFSET)
+  const wrapperWidth
+    = stageWrapper.value?.clientWidth || CANVAS_WIDTH
+
+  const availableHeight = Math.max(
+    520,
+    window.innerHeight - VIEWPORT_HEIGHT_OFFSET,
+  )
 
   const scaleByWidth = wrapperWidth / CANVAS_WIDTH
   const scaleByHeight = availableHeight / CANVAS_HEIGHT
 
-  const fitScale = Math.min(scaleByWidth, scaleByHeight, 1)
+  const fitScale = Math.min(
+    scaleByWidth,
+    scaleByHeight,
+    1,
+  )
 
-  // Desktop ให้ fit เต็มจอ
-  // Mobile/จอแคบ ให้คงขนาดอ่านได้ แล้วใช้ scroll แนวนอนแทน
-  scale.value = Math.max(fitScale, MIN_READABLE_SCALE)
+  scale.value = Math.max(
+    fitScale,
+    MIN_READABLE_SCALE,
+  )
 }
 
 const canvasStyle = computed(() => ({
@@ -209,6 +303,7 @@ const stageStyle = computed(() => ({
 
 onMounted(async () => {
   await nextTick()
+
   updateScale()
 
   resizeObserver = new ResizeObserver(() => {
@@ -322,7 +417,6 @@ const salesRows = [
   overflow-x: hidden;
   color: var(--foreground);
 
-  --page-bg: var(--background);
   --canvas-bg: var(--card);
 
   --card-bg:
@@ -339,13 +433,6 @@ const salesRows = [
       var(--card)
     );
 
-  --soft-purple:
-    color-mix(
-      in oklab,
-      var(--chart-4, var(--primary)) 13%,
-      var(--card)
-    );
-
   --table-head: var(--primary);
 
   --table-row:
@@ -357,8 +444,7 @@ const salesRows = [
 
   --text-main: var(--foreground);
   --text-muted: var(--muted-foreground);
-  --blue: var(--primary);
-  --value-blue: var(--primary);
+  --value-color: var(--primary);
 
   --arrow:
     color-mix(
@@ -366,8 +452,6 @@ const salesRows = [
       var(--primary) 42%,
       var(--muted-foreground)
     );
-
-  --green: var(--chart-2, #22c55e);
 
   --shadow:
     0 2px 8px
@@ -406,12 +490,12 @@ const salesRows = [
 }
 
 .stage-wrapper {
+  position: relative;
   width: 100%;
   max-width: 100%;
   overflow: auto;
-  position: relative;
-  background: var(--canvas-bg);
   border-radius: calc(var(--radius) - 2px);
+  background: var(--canvas-bg);
 }
 
 .stage-canvas {
@@ -428,44 +512,49 @@ const salesRows = [
 
   position: absolute;
   inset: 0;
-  transform-origin: top left;
-  background: var(--canvas-bg);
   color: var(--text-main);
+  background: var(--canvas-bg);
   font-family: Tahoma, Arial, sans-serif;
+  transform-origin: top left;
 }
 
 .unit-label {
   position: absolute;
   top: 16px;
   right: 24px;
-  color: var(--blue);
+  color: var(--value-color);
   font-size: 20px;
   font-weight: 800;
 }
 
-/* Top notes */
+/* =========================
+   Top cards
+   ========================= */
+
 .top-note {
   position: absolute;
   width: var(--box-w);
-  text-align: center;
   color: var(--text-main);
-  z-index: auto;
+  text-align: center;
 }
 
 .top-note-card {
   position: relative;
   z-index: 20;
-
+  display: grid;
   width: var(--box-w);
   height: var(--box-h);
-  padding: 14px 18px;
-  background: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow);
-  text-align: center;
-  display: grid;
   align-content: center;
-  box-sizing: border-box;
+  padding: 14px 18px;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 80%,
+      transparent
+    );
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
 }
 
 .top-note h3 {
@@ -486,7 +575,7 @@ const salesRows = [
 
 .top-note strong {
   display: block;
-  color: var(--value-blue);
+  color: var(--value-color);
   font-size: 30px;
   font-weight: 900;
   line-height: 1.05;
@@ -507,67 +596,78 @@ const salesRows = [
   left: 880px;
 }
 
-/* Vertical arrows from top cards */
+/* =========================
+   Top arrows
+   ========================= */
+
 .arrow-up {
   position: absolute;
-  left: 50%;
   top: 150px;
+  left: 50%;
+  z-index: 2;
   width: 18px;
   height: 42px;
+  border-radius: 2px;
   background: var(--arrow);
   transform: translateX(-50%);
-  z-index: 2;
-  border-radius: 2px;
 }
 
 .arrow-up::before {
-  content: "";
   position: absolute;
-  left: 50%;
   top: -24px;
-  transform: translateX(-50%);
+  left: 50%;
+  border-right: 24px solid transparent;
   border-bottom: 28px solid var(--arrow);
   border-left: 24px solid transparent;
-  border-right: 24px solid transparent;
+  content: "";
+  transform: translateX(-50%);
 }
 
-.arrow-down-green {
+.arrow-down-theme {
   position: absolute;
-  left: 50%;
   top: 132px;
+  left: 50%;
+  z-index: 2;
   width: 18px;
   height: 42px;
-  background: var(--green);
-  transform: translateX(-50%);
-  z-index: 2;
   border-radius: 2px;
-}
-
-.arrow-down-green::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -24px;
+  background: var(--arrow);
   transform: translateX(-50%);
-  border-top: 28px solid var(--green);
-  border-left: 24px solid transparent;
-  border-right: 24px solid transparent;
 }
 
-/* Main nodes */
+.arrow-down-theme::after {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  border-top: 28px solid var(--arrow);
+  border-right: 24px solid transparent;
+  border-left: 24px solid transparent;
+  content: "";
+  transform: translateX(-50%);
+}
+
+/* =========================
+   Main nodes
+   ========================= */
+
 .node {
   position: absolute;
+  z-index: 10;
+  display: grid;
   width: var(--box-w);
   height: var(--box-h);
-  padding: 14px 18px;
-  background: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow);
-  text-align: center;
-  display: grid;
   align-content: center;
-  box-sizing: border-box;
-  z-index: 10;
+  padding: 14px 18px;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 80%,
+      transparent
+    );
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  text-align: center;
 }
 
 .node h2,
@@ -593,7 +693,7 @@ const salesRows = [
 .node strong,
 .industry-box strong,
 .export-box strong {
-  color: var(--value-blue);
+  color: var(--value-color);
   font-size: 34px;
   font-weight: 900;
   line-height: 1.05;
@@ -607,23 +707,23 @@ const salesRows = [
 }
 
 .crude-node {
-  left: 10px;
   top: var(--main-top);
+  left: 10px;
 }
 
 .refinery-node {
-  left: 445px;
   top: var(--main-top);
+  left: 445px;
 }
 
 .trader-node {
-  left: 880px;
   top: var(--main-top);
+  left: 880px;
 }
 
 .customer-node {
-  left: 1310px;
   top: var(--main-top);
+  left: 1310px;
 }
 
 .trader-node h2,
@@ -645,104 +745,122 @@ const salesRows = [
   font-weight: 900;
 }
 
-/* Main horizontal arrows */
+/* =========================
+   Horizontal arrows
+   ========================= */
+
 .h-arrow {
   --arrow-line-height: 14px;
   --arrow-head-width: 34px;
   --arrow-head-height: 40px;
 
   position: absolute;
-  height: var(--arrow-head-height);
-  background: transparent;
   z-index: 1;
+  height: var(--arrow-head-height);
 }
 
 .h-arrow::before {
-  content: "";
   position: absolute;
-  left: 0;
-  right: var(--arrow-head-width);
   top: 50%;
+  right: var(--arrow-head-width);
+  left: 0;
   height: var(--arrow-line-height);
   background: var(--arrow);
+  content: "";
   transform: translateY(-50%);
 }
 
 .h-arrow::after {
-  content: "";
   position: absolute;
-  right: 0;
   top: 50%;
-  width: 0;
-  height: 0;
+  right: 0;
+  border-top:
+    calc(var(--arrow-head-height) / 2)
+    solid transparent;
+  border-bottom:
+    calc(var(--arrow-head-height) / 2)
+    solid transparent;
+  border-left:
+    var(--arrow-head-width)
+    solid var(--arrow);
+  content: "";
   transform: translateY(-50%);
-  border-left: var(--arrow-head-width) solid var(--arrow);
-  border-top: calc(var(--arrow-head-height) / 2) solid transparent;
-  border-bottom: calc(var(--arrow-head-height) / 2) solid transparent;
 }
 
 .arrow-crude-refinery {
-  left: 350px;
   top: 250px;
+  left: 350px;
   width: 95px;
 }
 
 .arrow-refinery-trader {
-  left: 785px;
   top: 250px;
+  left: 785px;
   width: 95px;
 }
 
 .arrow-trader-customer {
-  left: 1220px;
   top: 250px;
+  left: 1220px;
   width: 90px;
 }
 
-/* Vertical flow arrows */
+/* =========================
+   Vertical arrows
+   ========================= */
+
 .v-arrow {
   --v-arrow-line-width: 18px;
   --v-arrow-head-width: 42px;
   --v-arrow-head-height: 30px;
 
   position: absolute;
+  z-index: 2;
   width: var(--v-arrow-line-width);
+  border-radius: 2px;
   background: var(--arrow);
   transform: translateX(-50%);
-  z-index: 2;
-  border-radius: 2px;
 }
 
 .v-arrow::after {
-  content: "";
   position: absolute;
-  left: 50%;
   bottom: calc(var(--v-arrow-head-height) * -1);
+  left: 50%;
+  border-top:
+    var(--v-arrow-head-height)
+    solid var(--arrow);
+  border-right:
+    calc(var(--v-arrow-head-width) / 2)
+    solid transparent;
+  border-left:
+    calc(var(--v-arrow-head-width) / 2)
+    solid transparent;
+  content: "";
   transform: translateX(-50%);
-  border-top: var(--v-arrow-head-height) solid var(--arrow);
-  border-left: calc(var(--v-arrow-head-width) / 2) solid transparent;
-  border-right: calc(var(--v-arrow-head-width) / 2) solid transparent;
 }
 
-/* โรงกลั่น -> ส่งออก */
+/* ลูกศรลงส่งออก */
 .arrow-refinery-export {
-  left: 525px;
   top: 340px;
-  height: 315px;
+  left: 525px;
+  height: 335px;
 }
 
-/* โรงกลั่น/ผู้ค้า -> จำหน่ายภาคอุตสาหกรรม */
+/* ลูกศรลงภาคอุตสาหกรรม */
 .arrow-industry {
-  left: 680px;
   top: 330px;
-  height: 140px;
+  left: 680px;
+  height: 195px;
 }
 
-/* Source bars */
+/* =========================
+   Source bars
+   ========================= */
+
 .source-section {
   position: absolute;
-  left: 30px;
   top: 365px;
+  left: 30px;
   width: 420px;
 }
 
@@ -777,32 +895,54 @@ const salesRows = [
 
 .bar-track {
   height: 54px;
-  background: #d9d9d9;
+  overflow: hidden;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 85%,
+      transparent
+    );
+  background:
+    color-mix(
+      in oklab,
+      var(--muted) 82%,
+      var(--card)
+    );
 }
 
 .bar-fill {
+  display: flex;
   height: 100%;
   min-width: 34px;
-  background: var(--blue);
-  color: var(--primary-foreground);
-  display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--primary);
+  color: var(--primary-foreground);
   font-weight: 900;
 }
 
-/* Center blocks */
+/* =========================
+   Transport
+   ========================= */
+
 .transport-box {
   position: absolute;
+  top: 350px;
   left: 745px;
-  top: 360px;
+  z-index: 6;
   width: 190px;
+  min-height: 170px;
   padding: 12px 16px;
-  background: var(--soft-purple);
-  border-radius: 18px;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 88%,
+      transparent
+    );
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
   text-align: center;
-  box-sizing: border-box;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .transport-box h3 {
@@ -823,22 +963,36 @@ const salesRows = [
   font-weight: 800;
 }
 
+.transport-row strong {
+  color: var(--value-color);
+}
+
 .transport-icon {
   font-size: 25px;
 }
 
+/* =========================
+   Industry
+   ========================= */
+
 .industry-box {
   position: absolute;
+  top: 555px;
   left: 560px;
-  top: 510px;
+  z-index: 5;
   width: 390px;
   min-height: 108px;
   padding: 14px 18px;
-  background: var(--soft-bg);
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 85%,
+      transparent
+    );
   border-radius: 12px;
+  background: var(--soft-bg);
+  box-shadow: var(--shadow);
   text-align: center;
-  box-sizing: border-box;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .industry-box h2 {
@@ -849,22 +1003,31 @@ const salesRows = [
   color: var(--text-muted);
 }
 
+/* =========================
+   Export
+   ========================= */
+
 .export-box {
   position: absolute;
+  top: 705px;
   left: 485px;
-  top: 690px;
+  display: flex;
   width: 350px;
   min-height: 110px;
-  display: flex;
   align-items: center;
   justify-content: center;
   gap: 14px;
   padding: 14px 18px;
-  background: var(--soft-bg);
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--border) 85%,
+      transparent
+    );
   border-radius: 12px;
+  background: var(--soft-bg);
+  box-shadow: var(--shadow);
   text-align: center;
-  box-sizing: border-box;
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .truck {
@@ -876,11 +1039,14 @@ const salesRows = [
   font-size: 32px;
 }
 
-/* Sales table */
+/* =========================
+   Sales table
+   ========================= */
+
 .sales-section {
   position: absolute;
-  left: 1265px;
   top: 355px;
+  left: 1265px;
   width: 390px;
 }
 
@@ -890,33 +1056,52 @@ const salesRows = [
   table-layout: fixed;
   color: var(--text-main);
   font-size: 19px;
-  box-shadow: 0 2px 8px var(--shadow);
+  box-shadow: var(--shadow);
 }
 
 .sales-table th {
+  padding: 10px 8px;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--primary) 75%,
+      var(--border)
+    );
   background: var(--table-head);
   color: var(--primary-foreground);
-  padding: 10px 8px;
   font-size: 20px;
-  text-align: right;
   font-weight: 900;
+  text-align: right;
 }
 
 .sales-table th:first-child {
-  width: 55%;
+  width: 51%;
   text-align: center;
 }
 
-.sales-table th:nth-child(2),
+.sales-table th:nth-child(2) {
+  width: 27%;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .sales-table th:nth-child(3) {
-  width: 22.5%;
+  width: 22%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sales-table td:nth-child(2),
+.sales-table td:nth-child(3) {
+  white-space: nowrap;
 }
 
 .sales-table td {
-  padding: 8px 8px;
-  text-align: right;
+  padding: 8px;
+  border: 1px solid var(--border);
   color: var(--text-main);
   font-weight: 800;
+  text-align: right;
   vertical-align: middle;
 }
 
@@ -957,7 +1142,38 @@ const salesRows = [
   text-align: center;
 }
 
-/* Responsive */
+/* =========================
+   Theme transitions
+   ========================= */
+
+.production-card,
+.stage-wrapper,
+.stage-canvas,
+.production-stage,
+.top-note-card,
+.node,
+.transport-box,
+.industry-box,
+.export-box,
+.bar-track,
+.bar-fill,
+.sales-table th,
+.sales-table td,
+.arrow-up,
+.arrow-down-theme,
+.h-arrow::before,
+.v-arrow {
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+
 @media (max-width: 1200px) {
   .production-page {
     padding: 6px;
