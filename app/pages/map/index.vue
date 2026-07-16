@@ -123,6 +123,9 @@ let fuelStationClusterLayer: any = null
 let b100ClusterLayer: any = null
 let ethanolClusterLayer: any = null
 
+let legendControl: any = null
+let legendContainer: HTMLDivElement | null = null
+
 let policeLoaded = false
 let fireLoaded = false
 let hospitalLoaded = false
@@ -907,6 +910,73 @@ async function loadEthanolLayerOnDemand() {
 }
 
 
+function updateLegend() {
+  if (!legendContainer || !mapInstance)
+    return
+
+  const activeItems = [
+    {
+      layer: storageClusterLayer,
+      label: 'คลัง / สถานที่จัดเก็บ',
+      markerClass: 'marker-storage',
+    },
+    {
+      layer: fuelStationClusterLayer,
+      label: 'สถานีบริการน้ำมัน',
+      markerClass: 'marker-fuel-station',
+    },
+    {
+      layer: b100ClusterLayer,
+      label: 'ผู้ผลิต B100',
+      markerClass: 'marker-b100',
+    },
+    {
+      layer: ethanolClusterLayer,
+      label: 'ผู้ผลิตเอทานอล',
+      markerClass: 'marker-ethanol',
+    },
+    {
+      layer: policeClusterLayer,
+      label: 'สถานีตำรวจ',
+      markerClass: 'marker-police',
+    },
+    {
+      layer: fireClusterLayer,
+      label: 'สถานีดับเพลิง',
+      markerClass: 'marker-fire',
+    },
+    {
+      layer: hospitalClusterLayer,
+      label: 'โรงพยาบาล',
+      markerClass: 'marker-hospital',
+    },
+  ].filter(item => item.layer && mapInstance.hasLayer(item.layer))
+
+  if (!activeItems.length) {
+    legendContainer.innerHTML = ''
+    legendContainer.style.display = 'none'
+    return
+  }
+
+  legendContainer.style.display = ''
+  legendContainer.innerHTML = `
+    <div class="map-legend-title">
+      ชั้นข้อมูลที่แสดง (${activeItems.length})
+    </div>
+
+    <div class="map-legend-list">
+      ${activeItems
+        .map(item => `
+          <div class="map-legend-item">
+            <span class="map-legend-dot ${item.markerClass}"></span>
+            <span>${item.label}</span>
+          </div>
+        `)
+        .join('')}
+    </div>
+  `
+}
+
 function createLegendControl(L: any) {
   const LegendControl = L.Control.extend({
     options: {
@@ -914,58 +984,21 @@ function createLegendControl(L: any) {
     },
 
     onAdd() {
-      const container = L.DomUtil.create(
+      legendContainer = L.DomUtil.create(
         'div',
         'leaflet-control map-legend',
       )
 
-      container.innerHTML = `
-        <div class="map-legend-title">
-          คำอธิบายสัญลักษณ์
-        </div>
+      L.DomEvent.disableClickPropagation(legendContainer)
+      L.DomEvent.disableScrollPropagation(legendContainer)
 
-        <div class="map-legend-list">
-          <div class="map-legend-item">
-            <span class="map-legend-dot marker-storage"></span>
-            <span>คลัง / สถานที่จัดเก็บ</span>
-          </div>
+      updateLegend()
 
-          <div class="map-legend-item">
-            <span class="map-legend-dot marker-fuel-station"></span>
-            <span>สถานีบริการน้ำมัน</span>
-          </div>
+      return legendContainer
+    },
 
-          <div class="map-legend-item">
-            <span class="map-legend-dot marker-b100"></span>
-            <span>ผู้ผลิต B100</span>
-          </div>
-
-          <div class="map-legend-item">
-            <span class="map-legend-dot marker-ethanol"></span>
-            <span>ผู้ผลิตเอทานอล</span>
-          </div>
-
-          <div class="map-legend-item">
-            <span class="map-legend-dot marker-police"></span>
-            <span>สถานีตำรวจ</span>
-          </div>
-
-          <div class="map-legend-item">
-            <span class="map-legend-dot marker-fire"></span>
-            <span>สถานีดับเพลิง</span>
-          </div>
-
-          <div class="map-legend-item">
-            <span class="map-legend-dot marker-hospital"></span>
-            <span>โรงพยาบาล</span>
-          </div>
-        </div>
-      `
-
-      L.DomEvent.disableClickPropagation(container)
-      L.DomEvent.disableScrollPropagation(container)
-
-      return container
+    onRemove() {
+      legendContainer = null
     },
   })
 
@@ -1057,9 +1090,6 @@ onMounted(async () => {
 
   mapInstance.addControl(new FullscreenControl())
 
-  const legendControl = createLegendControl(L)
-  legendControl.addTo(mapInstance)
-
   storageClusterLayer = createClusterLayer(L, 'storage')
   policeClusterLayer = createClusterLayer(L, 'police')
   fireClusterLayer = createClusterLayer(L, 'fire')
@@ -1069,6 +1099,10 @@ onMounted(async () => {
   ethanolClusterLayer = createClusterLayer(L, 'ethanol')
 
   storageClusterLayer.addTo(mapInstance)
+
+  legendControl = createLegendControl(L)
+  legendControl.addTo(mapInstance)
+  updateLegend()
 
   L.control.layers(
     {
@@ -1091,6 +1125,8 @@ onMounted(async () => {
   ).addTo(mapInstance)
 
   mapInstance.on('overlayadd', async (event: any) => {
+    updateLegend()
+
     if (event.name === 'สถานีตำรวจ') {
       await loadPoliceLayerOnDemand()
       return
@@ -1119,6 +1155,11 @@ onMounted(async () => {
     if (event.name === 'ผู้ผลิตเอทานอล') {
       await loadEthanolLayerOnDemand()
     }
+  })
+
+
+  mapInstance.on('overlayremove', () => {
+    updateLegend()
   })
 
   resizeObserver = new ResizeObserver(() => {
@@ -1169,6 +1210,9 @@ onBeforeUnmount(() => {
   b100ClusterLayer = null
   ethanolClusterLayer = null
 
+  legendControl = null
+  legendContainer = null
+
   policeLoaded = false
   fireLoaded = false
   hospitalLoaded = false
@@ -1186,14 +1230,14 @@ onBeforeUnmount(() => {
     <div class="map-header">
       <div>
         <h2 class="text-2xl font-bold tracking-tight">
-          Map
+          แผนที่
         </h2>
 
         <p
           v-if="isLoading"
           class="text-sm text-muted-foreground"
         >
-          กำลังโหลดข้อมูลจาก Directus...
+          กำลังโหลดข้อมูล ...
         </p>
 
         <p
@@ -1235,7 +1279,7 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.map-shell {
+/* .map-shell {
   position: relative;
   isolation: isolate;
   z-index: 0;
@@ -1247,6 +1291,12 @@ onBeforeUnmount(() => {
   overflow: hidden;
   border-radius: 12px;
   background: var(--background);
+} */
+
+.map-shell {
+  height: 800px;
+  min-height: 700px;
+  flex: none;
 }
 
 .map-container {
@@ -1519,16 +1569,14 @@ onBeforeUnmount(() => {
 
 :global(.map-legend) {
   min-width: 210px;
+  max-height: min(45vh, 320px);
   margin-right: 12px !important;
   margin-bottom: 24px !important;
   padding: 12px 14px;
+  overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: color-mix(
-    in oklab,
-    var(--background) 40%,
-    transparent
-  );
+  background: color-mix(in oklab, var(--background) 94%, transparent);
   color: var(--foreground);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
   backdrop-filter: blur(8px);
@@ -1568,11 +1616,7 @@ onBeforeUnmount(() => {
   border-radius: 9999px;
   background: var(--marker-color);
   box-shadow:
-    0 0 0 1px color-mix(
-      in oklab,
-      var(--marker-color) 70%,
-      transparent
-    ),
+    0 0 0 1px color-mix(in oklab, var(--marker-color) 70%, transparent),
     0 3px 8px rgb(0 0 0 / 0.2);
 }
 
@@ -1587,9 +1631,11 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 
+
   :global(.map-legend) {
     min-width: 0;
     max-width: 190px;
+    max-height: 38vh;
     margin-right: 8px !important;
     margin-bottom: 24px !important;
     padding: 10px;

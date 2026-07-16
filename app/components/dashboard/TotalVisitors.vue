@@ -117,5 +117,5 @@ const filteredData = computed(() => chartData.filter((item) => {
 </script>
 
 <template>
-  <AreaChart :data="filteredData" :categories="['desktop', 'mobile']" index="date" />
+  <AreaChart :data="filteredData" :categories="['desktop', 'mobile']" index="date" :show-legend="false" />
 </template>

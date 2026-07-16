@@ -14,8 +14,8 @@ function resolveNavItemComponent(item: NavLink | NavGroup | NavSectionTitle): an
 }
 
 const appInfo = {
-  name: 'Warroom',
-  subtitle: 'กรมธุรกิจพลังงาน',
+  name: 'กรมธุรกิจพลังงาน',
+  subtitle: 'กระทรวงพลังงาน',
   logo: Logo,
 }
 
