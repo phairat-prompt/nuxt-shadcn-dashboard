@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     directusUrl: '',
     directusEmail: '',
     directusPassword: '',
+    datalasticApiKey: '',
   },
   devtools: { enabled: false },
 

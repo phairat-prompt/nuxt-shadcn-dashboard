@@ -9,9 +9,10 @@ import {
 } from 'vue'
 
 import type {
-  LayerGroup,
+  CircleMarker,
+  LatLngExpression,
   Map as LeafletMap,
-  Marker,
+  Polyline,
   TileLayer,
 } from 'leaflet'
 
@@ -203,125 +204,154 @@ const donutGradient = computed(() => {
 })
 
 /* -------------------------------------------------------------------------- */
-/* Vessel data                                                                */
-/* -------------------------------------------------------------------------- */
-
-interface Vessel {
-  uuid: string
-  name: string | null
-  mmsi: string
-  imo: string | null
-  eni: string | null
-  country_iso: string | null
-  type: string | null
-  type_specific: string | null
-  lat: number | null
-  lon: number | null
-  speed: number | null
-  course: number | null
-  heading: number | null
-  navigation_status: string | null
-  destination: string | null
-  last_position_epoch: number | null
-  last_position_UTC: string | null
-  eta_epoch: number | null
-  eta_UTC: string | null
-}
-
-interface VesselBulkResponse {
-  data: {
-    total: number
-    vessels: Vessel[]
-  }
-}
-
-const vessels = ref<Vessel[]>([])
-const vesselLoading = ref(false)
-const vesselError = ref('')
-const lastVesselUpdate = ref<Date | null>(null)
-
-let vesselRequestController: AbortController | null = null
-let hasFittedVessels = false
-
-function isValidCoordinate(vessel: Vessel) {
-  return (
-    typeof vessel.lat === 'number'
-    && Number.isFinite(vessel.lat)
-    && vessel.lat >= -90
-    && vessel.lat <= 90
-    && typeof vessel.lon === 'number'
-    && Number.isFinite(vessel.lon)
-    && vessel.lon >= -180
-    && vessel.lon <= 180
-  )
-}
-
-function formatThaiDateTime(value: Date | string | null) {
-  if (!value)
-    return '-'
-
-  const date = value instanceof Date
-    ? value
-    : new Date(value)
-
-  if (Number.isNaN(date.getTime()))
-    return '-'
-
-  return new Intl.DateTimeFormat('th-TH', {
-    dateStyle: 'short',
-    timeStyle: 'medium',
-    hour12: false,
-    timeZone: 'Asia/Bangkok',
-  }).format(date)
-}
-
-const lastVesselUpdateText = computed(() => {
-  return formatThaiDateTime(lastVesselUpdate.value)
-})
-
-const latestVesselPositionText = computed(() => {
-  const latestTimestamp = vessels.value.reduce(
-    (latest, vessel) => {
-      if (!vessel.last_position_UTC)
-        return latest
-
-      const timestamp = new Date(
-        vessel.last_position_UTC,
-      ).getTime()
-
-      if (Number.isNaN(timestamp))
-        return latest
-
-      return Math.max(latest, timestamp)
-    },
-    0,
-  )
-
-  if (!latestTimestamp)
-    return '-'
-
-  return formatThaiDateTime(
-    new Date(latestTimestamp),
-  )
-})
-
-/* -------------------------------------------------------------------------- */
 /* Leaflet map                                                                */
 /* -------------------------------------------------------------------------- */
 
+type RouteType = 'green' | 'red' | 'blue'
+
+interface RouteLayer {
+  layer: Polyline
+  type: RouteType
+}
+
 const worldMapEl = ref<HTMLDivElement | null>(null)
 
-let leafletApi: typeof import('leaflet') | null = null
 let worldMap: LeafletMap | null = null
 
 let lightTileLayer: TileLayer | null = null
 let darkTileLayer: TileLayer | null = null
-let vesselLayerGroup: LayerGroup | null = null
 
 let resizeObserver: ResizeObserver | null = null
 let resizeFrame = 0
 
-const vesselMarkers: Marker[] = []
+const routeLayers: RouteLayer[] = []
+const sourceMarkers: CircleMarker[] = []
+
+let thailandMarker: CircleMarker | null = null
+
+const thailandPosition: LatLngExpression = [
+  13.7563,
+  100.5018,
+]
+
+const mapPalettes = {
+  light: {
+    green: '#059669',
+
+    // Middle East / Far East
+    // ใช้เขียวมะกอกแทนสีแดงเดิม
+    red: '#65a30d',
+
+    blue: '#0284c7',
+
+    sourceFill: '#ffffff',
+    sourceStroke: '#334155',
+
+    hubFill: '#ffffff',
+    hubStroke: '#0284c7',
+  },
+
+  dark: {
+    green: '#35f59a',
+
+    // Middle East / Far East ใน Dark Theme
+    red: '#a3e635',
+
+    blue: '#28baf2',
+
+    sourceFill: '#f8fafc',
+    sourceStroke: '#dbeafe',
+
+    hubFill: '#f8fafc',
+    hubStroke: '#38bdf8',
+  },
+}
+
+const routeDefinitions: Array<{
+  type: RouteType
+  points: LatLngExpression[]
+}> = [
+  {
+    type: 'red',
+    points: [
+      [26.56, 56.25],
+      [24, 66],
+      [20, 76],
+      [16, 88],
+      thailandPosition,
+    ],
+  },
+  {
+    type: 'blue',
+    points: [
+      [12.58, 43.33],
+      [8, 57],
+      [7, 72],
+      [10, 87],
+      thailandPosition,
+    ],
+  },
+  {
+    type: 'green',
+    points: [
+      [29, -90],
+      [20, -65],
+      [10, -40],
+      [5, -10],
+      [4, 25],
+      [7, 50],
+      [10, 75],
+      thailandPosition,
+    ],
+  },
+  {
+    type: 'green',
+    points: [
+      [7, -10],
+      [1, 20],
+      [3, 45],
+      [8, 70],
+      thailandPosition,
+    ],
+  },
+  {
+    type: 'red',
+    points: [
+      [-23, 135],
+      [-10, 125],
+      [0, 115],
+      [8, 106],
+      thailandPosition,
+    ],
+  },
+]
+
+const sourcePoints: Array<{
+  name: string
+  position: LatLngExpression
+  direction: 'top' | 'bottom' | 'left' | 'right'
+}> = [
+  {
+    name: 'Hormuz',
+    position: [26.56, 56.25],
+    direction: 'top',
+  },
+  {
+    name: 'Bab-Al Mandab',
+    position: [12.58, 43.33],
+    direction: 'bottom',
+  },
+  {
+    name: 'Far East Asia / Oceania',
+    position: [-23, 135],
+    direction: 'left',
+  },
+  {
+    name: 'America / West Africa',
+    position: [7, -10],
+    direction: 'top',
+  },
+]
 
 function createTileLayers(
   L: typeof import('leaflet'),
@@ -365,211 +395,93 @@ function createTileLayers(
   ).addTo(worldMap)
 }
 
-function escapeHtml(value: string) {
-  const entities: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    '\'': '&#039;',
-  }
-
-  return value.replace(
-    /[&<>"']/g,
-    character => entities[character] ?? character,
-  )
-}
-
-function displayVesselName(vessel: Vessel) {
-  return vessel.name?.trim()
-    || `MMSI ${vessel.mmsi}`
-}
-
-function displayVesselDirection(vessel: Vessel) {
-  const direction = vessel.heading
-    ?? vessel.course
-    ?? 0
-
-  if (!Number.isFinite(direction))
-    return 0
-
-  return Math.round(direction) % 360
-}
-
-function createVesselIcon(
+function addRouteLayers(
   L: typeof import('leaflet'),
-  vessel: Vessel,
 ) {
-  const direction = displayVesselDirection(vessel)
+  if (!worldMap)
+    return
 
-  return L.divIcon({
-    className: 'vessel-div-icon',
-    html: `
-      <div class="vessel-marker">
-        <span
-          class="vessel-marker-arrow"
-          style="transform: rotate(${direction}deg)"
-        >
-          ▲
-        </span>
-      </div>
-    `,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -16],
-    tooltipAnchor: [0, -16],
+  routeDefinitions.forEach((route) => {
+    const palette = themeClass.value === 'dark'
+      ? mapPalettes.dark
+      : mapPalettes.light
+
+    const layer = L.polyline(route.points, {
+      color: palette[route.type],
+      weight: 4,
+      opacity: 0.94,
+      smoothFactor: 1.4,
+      lineCap: 'round',
+      lineJoin: 'round',
+      interactive: false,
+      className: `oil-route route-${route.type}`,
+    }).addTo(worldMap as LeafletMap)
+
+    routeLayers.push({
+      layer,
+      type: route.type,
+    })
   })
 }
 
-function vesselPopupHtml(vessel: Vessel) {
-  const speed = typeof vessel.speed === 'number'
-    ? `${vessel.speed.toFixed(1)} นอต`
-    : '-'
-
-  const course = typeof vessel.course === 'number'
-    ? `${Math.round(vessel.course)}°`
-    : '-'
-
-  const destination = vessel.destination
-    ? escapeHtml(vessel.destination)
-    : '-'
-
-  const vesselType = vessel.type_specific
-    || vessel.type
-    || '-'
-
-  return `
-    <div class="vessel-popup">
-      <strong>${escapeHtml(displayVesselName(vessel))}</strong>
-
-      <dl>
-        <div>
-          <dt>MMSI</dt>
-          <dd>${escapeHtml(vessel.mmsi)}</dd>
-        </div>
-
-        <div>
-          <dt>IMO</dt>
-          <dd>${escapeHtml(vessel.imo || '-')}</dd>
-        </div>
-
-        <div>
-          <dt>ประเภท</dt>
-          <dd>${escapeHtml(vesselType)}</dd>
-        </div>
-
-        <div>
-          <dt>ความเร็ว</dt>
-          <dd>${speed}</dd>
-        </div>
-
-        <div>
-          <dt>ทิศทาง</dt>
-          <dd>${course}</dd>
-        </div>
-
-        <div>
-          <dt>ปลายทาง</dt>
-          <dd>${destination}</dd>
-        </div>
-
-        <div>
-          <dt>ตำแหน่งล่าสุด</dt>
-          <dd>${formatThaiDateTime(vessel.last_position_UTC)}</dd>
-        </div>
-      </dl>
-    </div>
-  `
-}
-
-function renderVesselMarkers() {
-  if (
-    !leafletApi
-    || !worldMap
-    || !vesselLayerGroup
-  ) {
-    return
-  }
-
-  vesselLayerGroup.clearLayers()
-  vesselMarkers.length = 0
-
-  const L = leafletApi
-
-  vessels.value
-    .filter(isValidCoordinate)
-    .forEach((vessel) => {
-      const marker = L.marker(
-        [vessel.lat as number, vessel.lon as number],
-        {
-          icon: createVesselIcon(
-            L,
-            vessel,
-          ),
-          keyboard: true,
-          riseOnHover: true,
-          title: displayVesselName(vessel),
-        },
-      )
-
-      marker
-        .bindTooltip(
-          escapeHtml(displayVesselName(vessel)),
-          {
-            direction: 'top',
-            opacity: 1,
-            className: 'vessel-tooltip',
-          },
-        )
-        .bindPopup(
-          vesselPopupHtml(vessel),
-          {
-            maxWidth: 320,
-            className: 'vessel-popup-shell',
-          },
-        )
-        .addTo(vesselLayerGroup as LayerGroup)
-
-      vesselMarkers.push(marker)
-    })
-}
-
-function fitMapToVessels(force = false) {
-  if (
-    !leafletApi
-    || !worldMap
-    || (!force && hasFittedVessels)
-  ) {
-    return
-  }
-
-  const positions = vessels.value
-    .filter(isValidCoordinate)
-    .map(vessel => [
-      vessel.lat as number,
-      vessel.lon as number,
-    ] as [number, number])
-
-  if (!positions.length)
+function addMapPoints(
+  L: typeof import('leaflet'),
+) {
+  if (!worldMap)
     return
 
-  const bounds = leafletApi.latLngBounds(
-    positions,
-  )
+  const palette = themeClass.value === 'dark'
+    ? mapPalettes.dark
+    : mapPalettes.light
 
-  if (!bounds.isValid())
-    return
+  sourcePoints.forEach((point) => {
+    const marker = L.circleMarker(
+      point.position,
+      {
+        radius: 6,
 
-  worldMap.fitBounds(
-    bounds,
+        color: palette.sourceStroke,
+        weight: 2,
+
+        fillColor: palette.sourceFill,
+        fillOpacity: 1,
+
+        interactive: false,
+      },
+    )
+      .bindTooltip(point.name, {
+        permanent: true,
+        direction: point.direction,
+        offset: [0, -8],
+        className: 'map-route-label',
+      })
+      .addTo(worldMap as LeafletMap)
+
+    sourceMarkers.push(marker)
+  })
+
+  thailandMarker = L.circleMarker(
+    thailandPosition,
     {
-      padding: [42, 42],
-      maxZoom: 8,
-      animate: false,
+      radius: 10,
+
+      color: palette.hubStroke,
+      weight: 4,
+
+      fillColor: palette.hubFill,
+      fillOpacity: 1,
+
+      interactive: false,
     },
   )
-
-  hasFittedVessels = true
+    .bindTooltip('ประเทศไทย', {
+      permanent: true,
+      direction: 'bottom',
+      offset: [0, 12],
+      className:
+        'map-route-label map-hub-label',
+    })
+    .addTo(worldMap)
 }
 
 function applyMapTheme() {
@@ -582,6 +494,10 @@ function applyMapTheme() {
   }
 
   const isDark = themeClass.value === 'dark'
+
+  const palette = isDark
+    ? mapPalettes.dark
+    : mapPalettes.light
 
   lightTileLayer.setOpacity(
     isDark ? 0 : 1,
@@ -599,70 +515,35 @@ function applyMapTheme() {
     isDark ? 2 : 1,
   )
 
-  vesselMarkers.forEach((marker) => {
-    marker.setZIndexOffset(500)
+  routeLayers.forEach(({ layer, type }) => {
+    layer.setStyle({
+      color: palette[type],
+      weight: 4,
+      opacity: 0.94,
+    })
+
+    layer.bringToFront()
   })
-}
 
-async function fetchVessels() {
-  if (vesselLoading.value)
-    return
+  sourceMarkers.forEach((marker) => {
+    marker.setStyle({
+      color: palette.sourceStroke,
+      fillColor: palette.sourceFill,
+      weight: 2,
+      fillOpacity: 1,
+    })
 
-  vesselLoading.value = true
-  vesselError.value = ''
+    marker.bringToFront()
+  })
 
-  vesselRequestController?.abort()
+  thailandMarker?.setStyle({
+    color: palette.hubStroke,
+    fillColor: palette.hubFill,
+    weight: 4,
+    fillOpacity: 1,
+  })
 
-  const controller = new AbortController()
-  vesselRequestController = controller
-
-  try {
-    const response = await $fetch<VesselBulkResponse>(
-      '/api/directus/vessels',
-      {
-        signal: controller.signal,
-      },
-    )
-
-    const receivedVessels
-      = response?.data?.vessels
-
-    if (!Array.isArray(receivedVessels)) {
-      throw new TypeError(
-        'รูปแบบข้อมูลเรือจาก API ไม่ถูกต้อง',
-      )
-    }
-
-    vessels.value = receivedVessels
-      .filter(isValidCoordinate)
-
-    lastVesselUpdate.value = new Date()
-
-    renderVesselMarkers()
-    fitMapToVessels()
-  }
-  catch (error) {
-    if (
-      error instanceof DOMException
-      && error.name === 'AbortError'
-    ) {
-      return
-    }
-
-    vesselError.value
-      = error instanceof Error
-        ? error.message
-        : 'ไม่สามารถดึงข้อมูลเรือได้'
-  }
-  finally {
-    if (
-      vesselRequestController === controller
-    ) {
-      vesselRequestController = null
-    }
-
-    vesselLoading.value = false
-  }
+  thailandMarker?.bringToFront()
 }
 
 async function initWorldMap() {
@@ -676,16 +557,14 @@ async function initWorldMap() {
   const leafletModule = await import('leaflet')
   const L = leafletModule.default ?? leafletModule
 
-  leafletApi = L
-
   worldMap = L.map(
     worldMapEl.value,
     {
-      center: [10.5, 100.5],
-      zoom: 6,
+      center: [14, 65],
+      zoom: 2,
 
-      minZoom: 3,
-      maxZoom: 12,
+      minZoom: 2,
+      maxZoom: 8,
 
       zoomControl: true,
       attributionControl: true,
@@ -701,9 +580,19 @@ async function initWorldMap() {
   )
 
   createTileLayers(L)
+  addRouteLayers(L)
+  addMapPoints(L)
 
-  vesselLayerGroup = L.layerGroup()
-    .addTo(worldMap)
+  worldMap.fitBounds(
+    L.latLngBounds([
+      [-38, -125],
+      [52, 160],
+    ]),
+    {
+      padding: [24, 24],
+      animate: false,
+    },
+  )
 
   L.control
     .scale({
@@ -750,32 +639,26 @@ watch(
 onMounted(async () => {
   await nextTick()
   await initWorldMap()
-  await fetchVessels()
 })
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(resizeFrame)
 
-  vesselRequestController?.abort()
-  vesselRequestController = null
-
   resizeObserver?.disconnect()
   resizeObserver = null
-
-  vesselLayerGroup?.clearLayers()
-  vesselLayerGroup = null
 
   worldMap?.remove()
   worldMap = null
 
   lightTileLayer = null
   darkTileLayer = null
-  leafletApi = null
 
-  vesselMarkers.length = 0
+  thailandMarker = null
+
+  routeLayers.length = 0
+  sourceMarkers.length = 0
 })
 </script>
-
 
 <template>
   <div
@@ -843,11 +726,11 @@ onBeforeUnmount(() => {
             <div class="title-marker" />
 
             <h3>
-              ตำแหน่งเรือขนส่งน้ำมันที่คาดว่าจะเข้าไทย
+              ปริมาณน้ำมันดิบที่นำเข้าทางเรือที่คาดว่าจะเข้าไทย
             </h3>
           </div>
 
-          <span>อัปเดตอัตโนมัติทุก 5 นาที</span>
+          <span>หน่วย/ล้านบาร์เรล</span>
         </div>
 
         <div class="import-cards">
@@ -887,55 +770,25 @@ onBeforeUnmount(() => {
             ref="worldMapEl"
             class="world-map"
             role="img"
-            aria-label="แผนที่ตำแหน่งเรือขนส่งน้ำมันล่าสุด"
+            aria-label="แผนที่เส้นทางการนำเข้าน้ำมันดิบเข้าสู่ประเทศไทย"
           />
-
-          <div
-            v-if="vesselLoading && !vessels.length"
-            class="map-loading-overlay"
-          >
-            กำลังโหลดตำแหน่งเรือ...
-          </div>
         </div>
 
-        <div class="vessel-map-status">
-          <div class="vessel-status-info">
-            <span class="vessel-count">
-              <i
-                class="status-dot"
-                :class="{ loading: vesselLoading }"
-              />
+        <div class="map-legend">
+          <span>
+            <i class="map-legend-line green-line" />
+            America / West Africa
+          </span>
 
-              <!-- พบเรือ {{ vessels.length }} ลำ -->
-            </span>
+          <span>
+            <i class="map-legend-line red-line" />
+            Middle East / Far East
+          </span>
 
-            <span
-              v-if="vesselError"
-              class="vessel-error"
-            >
-              {{ vesselError }}
-            </span>
-
-            <span v-else>
-              ตำแหน่งล่าสุด:
-              {{ latestVesselPositionText }}
-              · อัปเดตเมื่อ:
-              {{ lastVesselUpdateText }}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            class="refresh-vessel-button"
-            :disabled="vesselLoading"
-            @click="fetchVessels"
-          >
-            {{
-              vesselLoading
-                ? 'กำลังอัปเดต...'
-                : 'รีเฟรชข้อมูล'
-            }}
-          </button>
+          <span>
+            <i class="map-legend-line blue-line" />
+            Bab-Al Mandab
+          </span>
         </div>
       </section>
 
@@ -946,7 +799,7 @@ onBeforeUnmount(() => {
             <div class="title-marker" />
 
             <h3>
-              ปริมาณน้ำมันดิบที่นำเข้า
+              ปริมาณน้ำมันดิบที่นำเข้าแยกตามแหล่งต้นทาง
             </h3>
           </div>
 
@@ -1563,83 +1416,7 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
-:deep(.world-map .leaflet-popup-content-wrapper),
-:deep(.world-map .leaflet-popup-tip) {
-  color: var(--text-main);
-  background: var(--panel-bg);
-}
-
-:deep(.world-map .leaflet-popup-content-wrapper) {
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-
-  box-shadow:
-    0 10px 26px
-    color-mix(
-      in oklab,
-      var(--foreground) 22%,
-      transparent
-    );
-}
-
-:deep(.world-map .leaflet-popup-content) {
-  margin: 12px 14px;
-}
-
-:deep(.world-map .vessel-div-icon) {
-  border: 0;
-  background: transparent;
-}
-
-:deep(.world-map .vessel-marker) {
-  display: grid;
-  place-items: center;
-
-  width: 34px;
-  height: 34px;
-
-  border: 2px solid
-    color-mix(
-      in oklab,
-      var(--primary-color) 75%,
-      white
-    );
-  border-radius: 999px;
-
-  background:
-    color-mix(
-      in oklab,
-      var(--primary-color) 88%,
-      black
-    );
-
-  box-shadow:
-    0 0 0 4px
-    color-mix(
-      in oklab,
-      var(--primary-color) 24%,
-      transparent
-    ),
-    0 4px 10px
-    color-mix(
-      in oklab,
-      var(--foreground) 25%,
-      transparent
-    );
-}
-
-:deep(.world-map .vessel-marker-arrow) {
-  display: block;
-
-  color: white;
-
-  font-size: 18px;
-  line-height: 1;
-
-  transform-origin: center;
-}
-
-:deep(.world-map .vessel-tooltip) {
+:deep(.world-map .map-route-label) {
   padding: 4px 8px;
 
   border: 1px solid var(--card-border);
@@ -1656,211 +1433,82 @@ onBeforeUnmount(() => {
       transparent
     );
 
-  font-family: inherit;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 
-:deep(.world-map .vessel-tooltip::before) {
-  border-top-color: var(--panel-bg);
+:deep(.world-map .map-route-label::before) {
+  display: none;
 }
 
-:deep(.world-map .vessel-popup) {
-  min-width: 230px;
-
-  font-family: inherit;
-}
-
-:deep(.world-map .vessel-popup > strong) {
-  display: block;
-
-  margin-bottom: 9px;
+:deep(.world-map .map-hub-label) {
+  border-color: var(--primary-color);
 
   color: var(--primary-color);
 
-  font-size: 15px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
-:deep(.world-map .vessel-popup dl) {
-  display: grid;
-
-  gap: 5px;
-
-  margin: 0;
-}
-
-:deep(.world-map .vessel-popup dl > div) {
-  display: grid;
-
-  grid-template-columns:
-    92px minmax(0, 1fr);
-
-  gap: 8px;
-}
-
-:deep(.world-map .vessel-popup dt) {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-:deep(.world-map .vessel-popup dd) {
-  min-width: 0;
-
-  margin: 0;
-
-  color: var(--text-main);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.map-loading-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 700;
-
-  display: grid;
-  place-items: center;
-
-  color: var(--text-main);
-  background:
-    color-mix(
-      in oklab,
-      var(--panel-bg) 78%,
-      transparent
-    );
-
-  font-size: 14px;
-  font-weight: 700;
-
-  backdrop-filter: blur(2px);
+:deep(.world-map .oil-route) {
+  filter: drop-shadow(0 0 3px currentColor);
 }
 
 /* -------------------------------------------------------------------------- */
-/* Vessel map status                                                          */
+/* Map legend                                                                 */
 /* -------------------------------------------------------------------------- */
 
-.vessel-map-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 10px;
-
-  min-height: 39px;
-
-  margin-top: 8px;
-}
-
-.vessel-status-info {
+.map-legend {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
 
-  gap: 8px 14px;
+  gap: 10px 18px;
 
-  min-width: 0;
+  margin-top: 9px;
 
   color: var(--text-muted);
 
   font-size: 12px;
 }
 
-.vessel-count {
+.map-legend span {
   display: inline-flex;
   align-items: center;
 
   gap: 7px;
-
-  color: var(--text-main);
-
-  font-weight: 700;
-  white-space: nowrap;
 }
 
-.status-dot {
-  width: 9px;
-  height: 9px;
+.map-legend-line {
+  width: 28px;
+  height: 4px;
 
   border-radius: 999px;
-
-  background: var(--success-color);
-
-  box-shadow:
-    0 0 0 4px
-    color-mix(
-      in oklab,
-      var(--success-color) 18%,
-      transparent
-    );
 }
 
-.status-dot.loading {
-  animation: vessel-pulse 1s ease-in-out infinite;
+.green-line {
+  background: #059669;
 }
 
-.vessel-error {
-  color: var(--destructive);
-  font-weight: 700;
+/* เปลี่ยนจากสีแดงเป็นเขียวมะกอก */
+.red-line {
+  background: #65a30d;
 }
 
-.refresh-vessel-button {
-  flex: 0 0 auto;
-
-  min-height: 32px;
-
-  padding: 5px 12px;
-
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--primary-color) 55%,
-      var(--card-border)
-    );
-  border-radius: 6px;
-
-  color: var(--primary-color);
-  background:
-    color-mix(
-      in oklab,
-      var(--primary-color) 9%,
-      var(--panel-bg)
-    );
-
-  font-size: 12px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    border-color 160ms ease,
-    opacity 160ms ease;
+.blue-line {
+  background: #0284c7;
 }
 
-.refresh-vessel-button:hover:not(:disabled) {
-  color: var(--primary-foreground);
-  background: var(--primary-color);
+.reserve-dashboard.dark .green-line {
+  background: #35f59a;
 }
 
-.refresh-vessel-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.reserve-dashboard.dark .red-line {
+  background: #a3e635;
 }
 
-
-@keyframes vessel-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.45;
-    transform: scale(0.82);
-  }
+.reserve-dashboard.dark .blue-line {
+  background: #28baf2;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2044,7 +1692,7 @@ onBeforeUnmount(() => {
 .progress-track,
 .progress-fill,
 .legend-dot,
-.refresh-vessel-button,
+.map-legend-line,
 .donut-hole,
 .donut-legend-row i {
   transition:

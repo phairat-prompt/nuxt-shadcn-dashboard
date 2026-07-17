@@ -2,8 +2,8 @@ import type { NavMenu, NavMenuItems } from "~/types/nav";
 
 export const navMenu: NavMenu[] = [
   {
-    // heading: "General",
-    heading: "",
+    heading: "Warroom",
+    // heading: "",
     items: [
       {
         title: "Map",
