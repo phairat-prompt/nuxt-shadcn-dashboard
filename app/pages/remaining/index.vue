@@ -289,13 +289,13 @@ function updatePerPage() {
           ภาพรวมปริมาณน้ำมันเชื้อเพลิงคงเหลือ และปริมาณสำรองตามกฎหมาย
         </h1>
 
-        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <!-- <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>ข้อมูลจาก API Gateway</span>
           <Separator orientation="vertical" class="h-3" />
           <span>ช่วงข้อมูล: {{ reportDate }} - {{ reportDate }}</span>
           <Separator orientation="vertical" class="h-3" />
           <span>อัปเดตล่าสุด: {{ reportDate }} 23:59 น.</span>
-        </div>
+        </div> -->
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
