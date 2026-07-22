@@ -166,7 +166,7 @@ function formatVolume(value: number) {
     <!-- Page header -->
     <div class="page-header">
       <h2 class="text-2xl font-bold tracking-tight">
-        Reserve Stock
+        ปริมาณน้ำมันสำรองภายในประเทศ
       </h2>
 
       <div class="flex items-center space-x-2">

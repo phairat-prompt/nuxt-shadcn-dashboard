@@ -1,168 +1,191 @@
 <script setup lang="ts">
-import 'leaflet/dist/leaflet.css'
-import 'leaflet.markercluster/dist/MarkerCluster.css'
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 definePageMeta({
-  title: 'Map',
-})
+  title: "Map",
+});
 
 type StorageLocation = {
-  uuid: string
-  depotId: number | null
-  storageName: string | null
-  vendorId: number | null
-  storageOwner: string | null
-  province: string | null
-  district: string | null
-  subDistrict: string | null
-  regionName: string | null
-  latitude: number
-  longitude: number
-}
+  uuid: string;
+  depotId: number | null;
+  storageName: string | null;
+  vendorId: number | null;
+  storageOwner: string | null;
+  province: string | null;
+  district: string | null;
+  subDistrict: string | null;
+  regionName: string | null;
+  latitude: number;
+  longitude: number;
+};
 
 type PoliceStation = {
-  uuid: string | number | null
-  name: string
-  province: string | null
-  district: string | null
-  subDistrict: string | null
-  latitude: number
-  longitude: number
-}
+  uuid: string | number | null;
+  name: string;
+  province: string | null;
+  district: string | null;
+  subDistrict: string | null;
+  latitude: number;
+  longitude: number;
+};
 
 type FireStation = {
-  uuid: string
-  longdoId: string | null
-  name: string | null
-  address: string | null
-  tel: string | null
-  icon: string | null
-  tag: string | null
-  url: string | null
-  contributor: string | null
-  verified: string | boolean | null
-  obsoleted: string | boolean | null
-  latitude: number
-  longitude: number
-}
+  uuid: string;
+  longdoId: string | null;
+  name: string | null;
+  address: string | null;
+  tel: string | null;
+  icon: string | null;
+  tag: string | null;
+  url: string | null;
+  contributor: string | null;
+  verified: string | boolean | null;
+  obsoleted: string | boolean | null;
+  latitude: number;
+  longitude: number;
+};
 
 type Hospital = {
-  uuid: string
-  longdoId: string | null
-  name: string | null
-  address: string | null
-  tel: string | null
-  icon: string | null
-  tag: string | null
-  url: string | null
-  contributor: string | null
-  verified: string | boolean | null
-  obsoleted: string | boolean | null
-  latitude: number
-  longitude: number
-}
+  uuid: string;
+  longdoId: string | null;
+  name: string | null;
+  address: string | null;
+  tel: string | null;
+  icon: string | null;
+  tag: string | null;
+  url: string | null;
+  contributor: string | null;
+  verified: string | boolean | null;
+  obsoleted: string | boolean | null;
+  latitude: number;
+  longitude: number;
+};
+
+type Port = {
+  uuid: string | number | null;
+  longdoId?: string | null;
+  longdo_id?: string | null;
+  name: string | null;
+  address: string | null;
+  tel: string | null;
+  icon: string | null;
+  tag: string | null;
+  url: string | null;
+  contributor: string | null;
+  verified: string | boolean | null;
+  obsoleted: string | boolean | null;
+  province?: string | null;
+  district?: string | null;
+  subDistrict?: string | null;
+  sub_district?: string | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  lat?: number | string | null;
+  lon?: number | string | null;
+};
 
 type FuelStatusStation = {
-  uuid: string
-  stationId: string | null
-  govCode: string | null
-  name: string | null
-  brand: string | null
-  sourceType: string | null
-  address: string | null
-  tambon: string | null
-  amphoe: string | null
-  province: string | null
-  fuels: Record<string, string | null>
-  reporterId: string | null
-  lastReport: string | null
-  latitude: number
-  longitude: number
-}
+  uuid: string;
+  stationId: string | null;
+  govCode: string | null;
+  name: string | null;
+  brand: string | null;
+  sourceType: string | null;
+  address: string | null;
+  tambon: string | null;
+  amphoe: string | null;
+  province: string | null;
+  fuels: Record<string, string | null>;
+  reporterId: string | null;
+  lastReport: string | null;
+  latitude: number;
+  longitude: number;
+};
 
 type SupplierLocation = {
-  uuid: string
-  no: number | null
-  address: string | null
+  uuid: string;
+  no: number | null;
+  address: string | null;
 
-  supplierName?: string | null
-  supplier_name?: string | null
+  supplierName?: string | null;
+  supplier_name?: string | null;
 
-  dailyProductionCapacityLiters?: number | null
-  daily_production_capacity_liters?: number | null
+  dailyProductionCapacityLiters?: number | null;
+  daily_production_capacity_liters?: number | null;
 
-  productionCapacityLpd?: number | null
-  production_capacity_lpd?: number | null
+  productionCapacityLpd?: number | null;
+  production_capacity_lpd?: number | null;
 
-  latitude?: number | string | null
-  longitude?: number | string | null
-  lat?: number | string | null
-  lon?: number | string | null
-}
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  lat?: number | string | null;
+  lon?: number | string | null;
+};
 
-type B100Supplier = SupplierLocation
-type EthanolSupplier = SupplierLocation
+type B100Supplier = SupplierLocation;
+type EthanolSupplier = SupplierLocation;
 
-const mapEl = ref<HTMLDivElement | null>(null)
-const colorMode = useColorMode()
+const mapEl = ref<HTMLDivElement | null>(null);
+const colorMode = useColorMode();
 
-const isLoading = ref(false)
-const errorMessage = ref('')
+const isLoading = ref(false);
+const errorMessage = ref("");
 
-let mapInstance: any = null
-let leafletInstance: any = null
-let resizeObserver: ResizeObserver | null = null
-let resizeTimer: number | null = null
+let mapInstance: any = null;
+let leafletInstance: any = null;
+let resizeObserver: ResizeObserver | null = null;
+let resizeTimer: number | null = null;
 
-let storageClusterLayer: any = null
-let policeClusterLayer: any = null
-let fireClusterLayer: any = null
-let hospitalClusterLayer: any = null
-let fuelStationClusterLayer: any = null
-let b100ClusterLayer: any = null
-let ethanolClusterLayer: any = null
+let storageClusterLayer: any = null;
+let portClusterLayer: any = null;
+let policeClusterLayer: any = null;
+let fireClusterLayer: any = null;
+let hospitalClusterLayer: any = null;
+let fuelStationClusterLayer: any = null;
+let b100ClusterLayer: any = null;
+let ethanolClusterLayer: any = null;
 
-let legendControl: any = null
-let legendContainer: HTMLDivElement | null = null
+let legendControl: any = null;
+let legendContainer: HTMLDivElement | null = null;
 
-let policeLoaded = false
-let fireLoaded = false
-let hospitalLoaded = false
-let fuelStationLoaded = false
-let b100Loaded = false
-let ethanolLoaded = false
+let portLoaded = false;
+let policeLoaded = false;
+let fireLoaded = false;
+let hospitalLoaded = false;
+let fuelStationLoaded = false;
+let b100Loaded = false;
+let ethanolLoaded = false;
 
 function getLatLng(item: any): [number, number] | null {
-  const latitude = Number(item.latitude ?? item.lat)
-  const longitude = Number(item.longitude ?? item.lon)
+  const latitude = Number(item.latitude ?? item.lat);
+  const longitude = Number(item.longitude ?? item.lon);
 
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude))
-    return null
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
 
-  return [latitude, longitude]
+  return [latitude, longitude];
 }
 
 function getSupplierName(item: SupplierLocation, fallback: string) {
-  return item.supplierName || item.supplier_name || fallback
+  return item.supplierName || item.supplier_name || fallback;
 }
 
 function getDailyCapacity(item: SupplierLocation) {
-  const value = item.dailyProductionCapacityLiters ?? item.daily_production_capacity_liters
+  const value =
+    item.dailyProductionCapacityLiters ?? item.daily_production_capacity_liters;
 
-  if (!value)
-    return '-'
+  if (!value) return "-";
 
-  return Number(value).toLocaleString()
+  return Number(value).toLocaleString();
 }
 
 function getCapacityLpd(item: SupplierLocation) {
-  const value = item.productionCapacityLpd ?? item.production_capacity_lpd
+  const value = item.productionCapacityLpd ?? item.production_capacity_lpd;
 
-  if (!value)
-    return '-'
+  if (!value) return "-";
 
-  return Number(value).toLocaleString()
+  return Number(value).toLocaleString();
 }
 
 function storageMarkerHtml() {
@@ -170,7 +193,15 @@ function storageMarkerHtml() {
     <div class="marker-dot marker-storage">
       <div class="marker-dot-inner"></div>
     </div>
-  `
+  `;
+}
+
+function portMarkerHtml() {
+  return `
+    <div class="marker-dot marker-port">
+      <div class="marker-dot-inner"></div>
+    </div>
+  `;
 }
 
 function policeMarkerHtml() {
@@ -178,7 +209,7 @@ function policeMarkerHtml() {
     <div class="marker-dot marker-police">
       <div class="marker-dot-inner"></div>
     </div>
-  `
+  `;
 }
 
 function fireMarkerHtml() {
@@ -186,7 +217,7 @@ function fireMarkerHtml() {
     <div class="marker-dot marker-fire">
       <div class="marker-dot-inner"></div>
     </div>
-  `
+  `;
 }
 
 function hospitalMarkerHtml() {
@@ -194,7 +225,7 @@ function hospitalMarkerHtml() {
     <div class="marker-dot marker-hospital">
       <div class="marker-dot-inner"></div>
     </div>
-  `
+  `;
 }
 
 function fuelStationMarkerHtml() {
@@ -202,7 +233,7 @@ function fuelStationMarkerHtml() {
     <div class="marker-dot marker-fuel-station">
       <div class="marker-dot-inner"></div>
     </div>
-  `
+  `;
 }
 
 function b100MarkerHtml() {
@@ -210,7 +241,7 @@ function b100MarkerHtml() {
     <div class="marker-dot marker-b100">
       <div class="marker-dot-inner"></div>
     </div>
-  `
+  `;
 }
 
 function ethanolMarkerHtml() {
@@ -218,209 +249,263 @@ function ethanolMarkerHtml() {
     <div class="marker-dot marker-ethanol">
       <div class="marker-dot-inner"></div>
     </div>
-  `
+  `;
 }
 
 function refreshMapSize(delay = 120) {
-  if (resizeTimer)
-    window.clearTimeout(resizeTimer)
+  if (resizeTimer) window.clearTimeout(resizeTimer);
 
   resizeTimer = window.setTimeout(() => {
     mapInstance?.invalidateSize({
       animate: false,
       pan: false,
-    })
-  }, delay)
+    });
+  }, delay);
 }
 
 function handleWindowResize() {
-  refreshMapSize(180)
+  refreshMapSize(180);
 }
 
 function storagePopupHtml(item: StorageLocation) {
   return `
     <div style="min-width: 260px">
-      <strong>${item.storageName || '-'}</strong>
+      <strong>${item.storageName || "-"}</strong>
       <br />
       <span>ประเภท: คลัง / สถานที่จัดเก็บ</span>
       <br />
-      <span>Depot ID: ${item.depotId ?? '-'}</span>
+      <span>Depot ID: ${item.depotId ?? "-"}</span>
       <br />
-      <span>Vendor ID: ${item.vendorId ?? '-'}</span>
+      <span>Vendor ID: ${item.vendorId ?? "-"}</span>
       <br />
-      <span>เจ้าของ: ${item.storageOwner || '-'}</span>
+      <span>เจ้าของ: ${item.storageOwner || "-"}</span>
       <br />
-      <span>จังหวัด: ${item.province || '-'}</span>
+      <span>จังหวัด: ${item.province || "-"}</span>
       <br />
-      <span>อำเภอ: ${item.district || '-'}</span>
+      <span>อำเภอ: ${item.district || "-"}</span>
       <br />
-      <span>ตำบล: ${item.subDistrict || '-'}</span>
+      <span>ตำบล: ${item.subDistrict || "-"}</span>
       <br />
-      <span>ภูมิภาค: ${item.regionName || '-'}</span>
+      <span>ภูมิภาค: ${item.regionName || "-"}</span>
       <br />
       <span>Lat: ${item.latitude}</span>
       <br />
       <span>Lng: ${item.longitude}</span>
     </div>
-  `
+  `;
+}
+
+function portPopupHtml(item: Port, latitude: number, longitude: number) {
+  const longdoId = item.longdoId ?? item.longdo_id ?? "-";
+  const subDistrict = item.subDistrict ?? item.sub_district ?? "-";
+  const urlHtml = item.url
+    ? `<br /><span>URL: <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a></span>`
+    : "";
+
+  return `
+    <div style="min-width: 280px">
+      <strong>${item.name || "-"}</strong>
+      <br />
+      <span>ประเภท: ท่าเรือ</span>
+      <br />
+      <span>Longdo ID: ${longdoId}</span>
+      <br />
+      <span>ที่อยู่: ${item.address || "-"}</span>
+      <br />
+      <span>ตำบล: ${subDistrict}</span>
+      <br />
+      <span>อำเภอ: ${item.district || "-"}</span>
+      <br />
+      <span>จังหวัด: ${item.province || "-"}</span>
+      <br />
+      <span>โทร: ${item.tel || "-"}</span>
+      <br />
+      <span>Tag: ${item.tag || "-"}</span>
+      <br />
+      <span>Verified: ${item.verified ?? "-"}</span>
+      ${urlHtml}
+      <br />
+      <span>Lat: ${latitude}</span>
+      <br />
+      <span>Lng: ${longitude}</span>
+    </div>
+  `;
 }
 
 function policePopupHtml(item: PoliceStation) {
   return `
     <div style="min-width: 240px">
-      <strong>${item.name || '-'}</strong>
+      <strong>${item.name || "-"}</strong>
       <br />
       <span>ประเภท: สถานีตำรวจ</span>
       <br />
-      <span>จังหวัด: ${item.province || '-'}</span>
+      <span>จังหวัด: ${item.province || "-"}</span>
       <br />
-      <span>อำเภอ: ${item.district || '-'}</span>
+      <span>อำเภอ: ${item.district || "-"}</span>
       <br />
-      <span>ตำบล: ${item.subDistrict || '-'}</span>
+      <span>ตำบล: ${item.subDistrict || "-"}</span>
       <br />
       <span>Lat: ${item.latitude}</span>
       <br />
       <span>Lng: ${item.longitude}</span>
     </div>
-  `
+  `;
 }
 
 function firePopupHtml(item: FireStation) {
   return `
     <div style="min-width: 260px">
-      <strong>${item.name || '-'}</strong>
+      <strong>${item.name || "-"}</strong>
       <br />
       <span>ประเภท: สถานีดับเพลิง</span>
       <br />
-      <span>Longdo ID: ${item.longdoId || '-'}</span>
+      <span>Longdo ID: ${item.longdoId || "-"}</span>
       <br />
-      <span>ที่อยู่: ${item.address || '-'}</span>
+      <span>ที่อยู่: ${item.address || "-"}</span>
       <br />
-      <span>โทร: ${item.tel || '-'}</span>
+      <span>โทร: ${item.tel || "-"}</span>
       <br />
-      <span>Verified: ${item.verified ?? '-'}</span>
+      <span>Verified: ${item.verified ?? "-"}</span>
       <br />
       <span>Lat: ${item.latitude}</span>
       <br />
       <span>Lng: ${item.longitude}</span>
     </div>
-  `
+  `;
 }
 
 function hospitalPopupHtml(item: Hospital) {
   const urlHtml = item.url
     ? `<br /><span>URL: <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a></span>`
-    : ''
+    : "";
 
   return `
     <div style="min-width: 270px">
-      <strong>${item.name || '-'}</strong>
+      <strong>${item.name || "-"}</strong>
       <br />
       <span>ประเภท: โรงพยาบาล / สถานพยาบาล</span>
       <br />
-      <span>Longdo ID: ${item.longdoId || '-'}</span>
+      <span>Longdo ID: ${item.longdoId || "-"}</span>
       <br />
-      <span>ที่อยู่: ${item.address || '-'}</span>
+      <span>ที่อยู่: ${item.address || "-"}</span>
       <br />
-      <span>โทร: ${item.tel || '-'}</span>
+      <span>โทร: ${item.tel || "-"}</span>
       <br />
-      <span>Verified: ${item.verified ?? '-'}</span>
+      <span>Verified: ${item.verified ?? "-"}</span>
       ${urlHtml}
       <br />
       <span>Lat: ${item.latitude}</span>
       <br />
       <span>Lng: ${item.longitude}</span>
     </div>
-  `
+  `;
 }
 
 function fuelStationPopupHtml(item: FuelStatusStation) {
   const fuelList = Object.entries(item.fuels || {})
-    .map(([key, value]) => `<span>${key}: ${value || '-'}</span>`)
-    .join('<br />')
+    .map(([key, value]) => `<span>${key}: ${value || "-"}</span>`)
+    .join("<br />");
 
   return `
     <div style="min-width: 280px">
-      <strong>${item.name || '-'}</strong>
+      <strong>${item.name || "-"}</strong>
       <br />
       <span>ประเภท: สถานีบริการน้ำมัน</span>
       <br />
-      <span>Brand: ${item.brand || '-'}</span>
+      <span>Brand: ${item.brand || "-"}</span>
       <br />
-      <span>Gov Code: ${item.govCode || '-'}</span>
+      <span>Gov Code: ${item.govCode || "-"}</span>
       <br />
-      <span>Station ID: ${item.stationId || '-'}</span>
+      <span>Station ID: ${item.stationId || "-"}</span>
       <br />
-      <span>ที่อยู่: ${item.address || '-'}</span>
+      <span>ที่อยู่: ${item.address || "-"}</span>
       <br />
-      <span>ตำบล: ${item.tambon || '-'}</span>
+      <span>ตำบล: ${item.tambon || "-"}</span>
       <br />
-      <span>อำเภอ: ${item.amphoe || '-'}</span>
+      <span>อำเภอ: ${item.amphoe || "-"}</span>
       <br />
-      <span>จังหวัด: ${item.province || '-'}</span>
+      <span>จังหวัด: ${item.province || "-"}</span>
       <hr style="margin: 6px 0" />
       ${fuelList}
       <hr style="margin: 6px 0" />
-      <span>Last Report: ${item.lastReport || '-'}</span>
+      <span>Last Report: ${item.lastReport || "-"}</span>
       <br />
       <span>Lat: ${item.latitude}</span>
       <br />
       <span>Lng: ${item.longitude}</span>
     </div>
-  `
+  `;
 }
 
-function b100PopupHtml(item: B100Supplier, latitude: number, longitude: number) {
+function b100PopupHtml(
+  item: B100Supplier,
+  latitude: number,
+  longitude: number,
+) {
   return `
     <div style="min-width: 270px">
-      <strong>${getSupplierName(item, 'ผู้ผลิต B100')}</strong>
+      <strong>${getSupplierName(item, "ผู้ผลิต B100")}</strong>
       <br />
       <span>ประเภท: ผู้ผลิต B100</span>
       <br />
-      <span>ลำดับ: ${item.no ?? '-'}</span>
+      <span>ลำดับ: ${item.no ?? "-"}</span>
       <br />
       <span>กำลังผลิตต่อวัน: ${getDailyCapacity(item)} ลิตร/วัน</span>
       <br />
       <span>Production Capacity LPD: ${getCapacityLpd(item)}</span>
       <br />
-      <span>ที่อยู่: ${item.address || '-'}</span>
+      <span>ที่อยู่: ${item.address || "-"}</span>
       <br />
       <span>Lat: ${latitude}</span>
       <br />
       <span>Lng: ${longitude}</span>
     </div>
-  `
+  `;
 }
 
-function ethanolPopupHtml(item: EthanolSupplier, latitude: number, longitude: number) {
+function ethanolPopupHtml(
+  item: EthanolSupplier,
+  latitude: number,
+  longitude: number,
+) {
   return `
     <div style="min-width: 270px">
-      <strong>${getSupplierName(item, 'ผู้ผลิตเอทานอล')}</strong>
+      <strong>${getSupplierName(item, "ผู้ผลิตเอทานอล")}</strong>
       <br />
       <span>ประเภท: ผู้ผลิตเอทานอล</span>
       <br />
-      <span>ลำดับ: ${item.no ?? '-'}</span>
+      <span>ลำดับ: ${item.no ?? "-"}</span>
       <br />
       <span>กำลังผลิตต่อวัน: ${getDailyCapacity(item)} ลิตร/วัน</span>
       <br />
       <span>Production Capacity LPD: ${getCapacityLpd(item)}</span>
       <br />
-      <span>ที่อยู่: ${item.address || '-'}</span>
+      <span>ที่อยู่: ${item.address || "-"}</span>
       <br />
       <span>Lat: ${latitude}</span>
       <br />
       <span>Lng: ${longitude}</span>
     </div>
-  `
+  `;
 }
 
 function createClusterLayer(
   L: any,
-  type: 'storage' | 'police' | 'fire' | 'hospital' | 'fuel-station' | 'b100' | 'ethanol',
+  type:
+    | "storage"
+    | "port"
+    | "police"
+    | "fire"
+    | "hospital"
+    | "fuel-station"
+    | "b100"
+    | "ethanol",
 ) {
-  if (typeof (L as any).markerClusterGroup !== 'function') {
-    console.warn('leaflet.markercluster is not loaded. Fallback to normal layerGroup.')
-    return L.layerGroup()
+  if (typeof (L as any).markerClusterGroup !== "function") {
+    console.warn(
+      "leaflet.markercluster is not loaded. Fallback to normal layerGroup.",
+    );
+    return L.layerGroup();
   }
 
   return (L as any).markerClusterGroup({
@@ -433,7 +518,7 @@ function createClusterLayer(
     chunkDelay: 40,
 
     iconCreateFunction(cluster: any) {
-      const count = cluster.getChildCount()
+      const count = cluster.getChildCount();
 
       return L.divIcon({
         html: `
@@ -441,524 +526,572 @@ function createClusterLayer(
             <span>${count}</span>
           </div>
         `,
-        className: 'cluster-wrapper',
+        className: "cluster-wrapper",
         iconSize: L.point(42, 42),
-      })
+      });
     },
-  })
+  });
 }
 
 async function loadStorageLocations(L: any) {
-  if (!mapInstance || !storageClusterLayer)
-    return []
+  if (!mapInstance || !storageClusterLayer) return [];
 
-  const locations = await $fetch<StorageLocation[]>('/api/directus/storage-locations')
+  const locations = await $fetch<StorageLocation[]>(
+    "/api/directus/storage-locations",
+  );
 
-  storageClusterLayer.clearLayers()
+  storageClusterLayer.clearLayers();
 
-  const bounds: [number, number][] = []
+  const bounds: [number, number][] = [];
 
   locations.forEach((item) => {
     const marker = L.marker([item.latitude, item.longitude], {
       icon: L.divIcon({
-        className: 'custom-map-marker',
+        className: "custom-map-marker",
         html: storageMarkerHtml(),
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
-    })
+    });
 
-    marker.bindPopup(storagePopupHtml(item))
-    storageClusterLayer.addLayer(marker)
+    marker.bindPopup(storagePopupHtml(item));
+    storageClusterLayer.addLayer(marker);
 
-    bounds.push([item.latitude, item.longitude])
-  })
+    bounds.push([item.latitude, item.longitude]);
+  });
 
-  return bounds
+  return bounds;
+}
+
+async function loadPorts(L: any) {
+  if (!mapInstance || !portClusterLayer) return [];
+
+  const ports = await $fetch<Port[]>("/api/directus/ports");
+
+  portClusterLayer.clearLayers();
+
+  const bounds: [number, number][] = [];
+
+  ports.forEach((item) => {
+    const latLng = getLatLng(item);
+
+    if (!latLng) return;
+
+    const [latitude, longitude] = latLng;
+
+    const marker = L.marker([latitude, longitude], {
+      icon: L.divIcon({
+        className: "custom-map-marker",
+        html: portMarkerHtml(),
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      }),
+    });
+
+    marker.bindPopup(portPopupHtml(item, latitude, longitude));
+    portClusterLayer.addLayer(marker);
+
+    bounds.push([latitude, longitude]);
+  });
+
+  return bounds;
 }
 
 async function loadPoliceStations(L: any) {
-  if (!mapInstance || !policeClusterLayer)
-    return []
+  if (!mapInstance || !policeClusterLayer) return [];
 
-  const policeStations = await $fetch<PoliceStation[]>('/api/directus/police-stations')
+  const policeStations = await $fetch<PoliceStation[]>(
+    "/api/directus/police-stations",
+  );
 
-  policeClusterLayer.clearLayers()
+  policeClusterLayer.clearLayers();
 
-  const bounds: [number, number][] = []
+  const bounds: [number, number][] = [];
 
   policeStations.forEach((item) => {
     const marker = L.marker([item.latitude, item.longitude], {
       icon: L.divIcon({
-        className: 'custom-map-marker',
+        className: "custom-map-marker",
         html: policeMarkerHtml(),
         iconSize: [26, 26],
         iconAnchor: [13, 13],
       }),
-    })
+    });
 
-    marker.bindPopup(policePopupHtml(item))
-    policeClusterLayer.addLayer(marker)
+    marker.bindPopup(policePopupHtml(item));
+    policeClusterLayer.addLayer(marker);
 
-    bounds.push([item.latitude, item.longitude])
-  })
+    bounds.push([item.latitude, item.longitude]);
+  });
 
-  return bounds
+  return bounds;
 }
 
 async function loadFireStations(L: any) {
-  if (!mapInstance || !fireClusterLayer)
-    return []
+  if (!mapInstance || !fireClusterLayer) return [];
 
-  const fireStations = await $fetch<FireStation[]>('/api/directus/fire-stations')
+  const fireStations = await $fetch<FireStation[]>(
+    "/api/directus/fire-stations",
+  );
 
-  fireClusterLayer.clearLayers()
+  fireClusterLayer.clearLayers();
 
-  const bounds: [number, number][] = []
+  const bounds: [number, number][] = [];
 
   fireStations.forEach((item) => {
     const marker = L.marker([item.latitude, item.longitude], {
       icon: L.divIcon({
-        className: 'custom-map-marker',
+        className: "custom-map-marker",
         html: fireMarkerHtml(),
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
-    })
+    });
 
-    marker.bindPopup(firePopupHtml(item))
-    fireClusterLayer.addLayer(marker)
+    marker.bindPopup(firePopupHtml(item));
+    fireClusterLayer.addLayer(marker);
 
-    bounds.push([item.latitude, item.longitude])
-  })
+    bounds.push([item.latitude, item.longitude]);
+  });
 
-  return bounds
+  return bounds;
 }
 
 async function loadHospitals(L: any) {
-  if (!mapInstance || !hospitalClusterLayer)
-    return []
+  if (!mapInstance || !hospitalClusterLayer) return [];
 
-  const hospitals = await $fetch<Hospital[]>('/api/directus/hospitals')
+  const hospitals = await $fetch<Hospital[]>("/api/directus/hospitals");
 
-  hospitalClusterLayer.clearLayers()
+  hospitalClusterLayer.clearLayers();
 
-  const bounds: [number, number][] = []
+  const bounds: [number, number][] = [];
 
   hospitals.forEach((item) => {
     const marker = L.marker([item.latitude, item.longitude], {
       icon: L.divIcon({
-        className: 'custom-map-marker',
+        className: "custom-map-marker",
         html: hospitalMarkerHtml(),
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
-    })
+    });
 
-    marker.bindPopup(hospitalPopupHtml(item))
-    hospitalClusterLayer.addLayer(marker)
+    marker.bindPopup(hospitalPopupHtml(item));
+    hospitalClusterLayer.addLayer(marker);
 
-    bounds.push([item.latitude, item.longitude])
-  })
+    bounds.push([item.latitude, item.longitude]);
+  });
 
-  return bounds
+  return bounds;
 }
 
 async function loadFuelStatusStations(L: any) {
-  if (!mapInstance || !fuelStationClusterLayer)
-    return []
+  if (!mapInstance || !fuelStationClusterLayer) return [];
 
-  const stations = await $fetch<FuelStatusStation[]>('/api/directus/fuelstatus-stations')
+  const stations = await $fetch<FuelStatusStation[]>(
+    "/api/directus/fuelstatus-stations",
+  );
 
-  fuelStationClusterLayer.clearLayers()
+  fuelStationClusterLayer.clearLayers();
 
-  const bounds: [number, number][] = []
+  const bounds: [number, number][] = [];
 
   stations.forEach((item) => {
     const marker = L.marker([item.latitude, item.longitude], {
       icon: L.divIcon({
-        className: 'custom-map-marker',
+        className: "custom-map-marker",
         html: fuelStationMarkerHtml(),
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
-    })
+    });
 
-    marker.bindPopup(fuelStationPopupHtml(item))
-    fuelStationClusterLayer.addLayer(marker)
+    marker.bindPopup(fuelStationPopupHtml(item));
+    fuelStationClusterLayer.addLayer(marker);
 
-    bounds.push([item.latitude, item.longitude])
-  })
+    bounds.push([item.latitude, item.longitude]);
+  });
 
-  return bounds
+  return bounds;
 }
 
 async function loadB100Suppliers(L: any) {
-  if (!mapInstance || !b100ClusterLayer)
-    return []
+  if (!mapInstance || !b100ClusterLayer) return [];
 
-  const suppliers = await $fetch<B100Supplier[]>('/api/directus/b100-suppliers')
+  const suppliers = await $fetch<B100Supplier[]>(
+    "/api/directus/b100-suppliers",
+  );
 
-  b100ClusterLayer.clearLayers()
+  b100ClusterLayer.clearLayers();
 
-  const bounds: [number, number][] = []
+  const bounds: [number, number][] = [];
 
   suppliers.forEach((item) => {
-    const latLng = getLatLng(item)
+    const latLng = getLatLng(item);
 
-    if (!latLng)
-      return
+    if (!latLng) return;
 
-    const [latitude, longitude] = latLng
+    const [latitude, longitude] = latLng;
 
     const marker = L.marker([latitude, longitude], {
       icon: L.divIcon({
-        className: 'custom-map-marker',
+        className: "custom-map-marker",
         html: b100MarkerHtml(),
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
-    })
+    });
 
-    marker.bindPopup(b100PopupHtml(item, latitude, longitude))
-    b100ClusterLayer.addLayer(marker)
+    marker.bindPopup(b100PopupHtml(item, latitude, longitude));
+    b100ClusterLayer.addLayer(marker);
 
-    bounds.push([latitude, longitude])
-  })
+    bounds.push([latitude, longitude]);
+  });
 
-  return bounds
+  return bounds;
 }
 
 async function loadEthanolSuppliers(L: any) {
-  if (!mapInstance || !ethanolClusterLayer)
-    return []
+  if (!mapInstance || !ethanolClusterLayer) return [];
 
-  const suppliers = await $fetch<EthanolSupplier[]>('/api/directus/ethanol-suppliers')
+  const suppliers = await $fetch<EthanolSupplier[]>(
+    "/api/directus/ethanol-suppliers",
+  );
 
-  ethanolClusterLayer.clearLayers()
+  ethanolClusterLayer.clearLayers();
 
-  const bounds: [number, number][] = []
+  const bounds: [number, number][] = [];
 
   suppliers.forEach((item) => {
-    const latLng = getLatLng(item)
+    const latLng = getLatLng(item);
 
-    if (!latLng)
-      return
+    if (!latLng) return;
 
-    const [latitude, longitude] = latLng
+    const [latitude, longitude] = latLng;
 
     const marker = L.marker([latitude, longitude], {
       icon: L.divIcon({
-        className: 'custom-map-marker',
+        className: "custom-map-marker",
         html: ethanolMarkerHtml(),
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
-    })
+    });
 
-    marker.bindPopup(ethanolPopupHtml(item, latitude, longitude))
-    ethanolClusterLayer.addLayer(marker)
+    marker.bindPopup(ethanolPopupHtml(item, latitude, longitude));
+    ethanolClusterLayer.addLayer(marker);
 
-    bounds.push([latitude, longitude])
-  })
+    bounds.push([latitude, longitude]);
+  });
 
-  return bounds
+  return bounds;
 }
 
 async function loadInitialMapData(L: any) {
-  if (!mapInstance)
-    return
+  if (!mapInstance) return;
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    const storageBounds = await loadStorageLocations(L)
+    const storageBounds = await loadStorageLocations(L);
+
+    portLoaded = false;
 
     if (storageBounds.length) {
       mapInstance.fitBounds(storageBounds, {
         padding: [40, 40],
         maxZoom: 11,
-      })
+      });
     }
 
-    refreshMapSize(300)
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    errorMessage.value =
+      "ไม่สามารถโหลดข้อมูลคลัง / สถานที่จัดเก็บจาก Directus ได้";
+  } finally {
+    isLoading.value = false;
   }
-  catch (error) {
-    console.error(error)
-    errorMessage.value = 'ไม่สามารถดึงข้อมูลคลัง / สถานที่จัดเก็บจาก Directus ได้'
-  }
-  finally {
-    isLoading.value = false
+}
+
+async function loadPortLayerOnDemand() {
+  if (!mapInstance || !leafletInstance) return;
+
+  if (portLoaded) return;
+
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const bounds = await loadPorts(leafletInstance);
+    portLoaded = true;
+
+    if (!mapInstance.hasLayer(portClusterLayer))
+      portClusterLayer.addTo(mapInstance);
+
+    if (bounds.length) {
+      mapInstance.fitBounds(bounds, {
+        padding: [40, 40],
+        maxZoom: 11,
+      });
+    }
+
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    portLoaded = false;
+    errorMessage.value = "ไม่สามารถโหลดข้อมูลท่าเรือได้";
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function loadPoliceLayerOnDemand() {
-  if (!mapInstance || !leafletInstance)
-    return
+  if (!mapInstance || !leafletInstance) return;
 
-  if (policeLoaded)
-    return
+  if (policeLoaded) return;
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    const bounds = await loadPoliceStations(leafletInstance)
-    policeLoaded = true
+    const bounds = await loadPoliceStations(leafletInstance);
+    policeLoaded = true;
 
     if (!mapInstance.hasLayer(policeClusterLayer))
-      policeClusterLayer.addTo(mapInstance)
+      policeClusterLayer.addTo(mapInstance);
 
     if (bounds.length) {
       mapInstance.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 11,
-      })
+      });
     }
 
-    refreshMapSize(300)
-  }
-  catch (error) {
-    console.error(error)
-    policeLoaded = false
-    errorMessage.value = 'ไม่สามารถโหลดข้อมูลสถานีตำรวจได้'
-  }
-  finally {
-    isLoading.value = false
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    policeLoaded = false;
+    errorMessage.value = "ไม่สามารถโหลดข้อมูลสถานีตำรวจได้";
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function loadFireLayerOnDemand() {
-  if (!mapInstance || !leafletInstance)
-    return
+  if (!mapInstance || !leafletInstance) return;
 
-  if (fireLoaded)
-    return
+  if (fireLoaded) return;
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    const bounds = await loadFireStations(leafletInstance)
-    fireLoaded = true
+    const bounds = await loadFireStations(leafletInstance);
+    fireLoaded = true;
 
     if (!mapInstance.hasLayer(fireClusterLayer))
-      fireClusterLayer.addTo(mapInstance)
+      fireClusterLayer.addTo(mapInstance);
 
     if (bounds.length) {
       mapInstance.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 11,
-      })
+      });
     }
 
-    refreshMapSize(300)
-  }
-  catch (error) {
-    console.error(error)
-    fireLoaded = false
-    errorMessage.value = 'ไม่สามารถโหลดข้อมูลสถานีดับเพลิงได้'
-  }
-  finally {
-    isLoading.value = false
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    fireLoaded = false;
+    errorMessage.value = "ไม่สามารถโหลดข้อมูลสถานีดับเพลิงได้";
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function loadHospitalLayerOnDemand() {
-  if (!mapInstance || !leafletInstance)
-    return
+  if (!mapInstance || !leafletInstance) return;
 
-  if (hospitalLoaded)
-    return
+  if (hospitalLoaded) return;
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    const bounds = await loadHospitals(leafletInstance)
-    hospitalLoaded = true
+    const bounds = await loadHospitals(leafletInstance);
+    hospitalLoaded = true;
 
     if (!mapInstance.hasLayer(hospitalClusterLayer))
-      hospitalClusterLayer.addTo(mapInstance)
+      hospitalClusterLayer.addTo(mapInstance);
 
     if (bounds.length) {
       mapInstance.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 11,
-      })
+      });
     }
 
-    refreshMapSize(300)
-  }
-  catch (error) {
-    console.error(error)
-    hospitalLoaded = false
-    errorMessage.value = 'ไม่สามารถโหลดข้อมูลโรงพยาบาลได้'
-  }
-  finally {
-    isLoading.value = false
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    hospitalLoaded = false;
+    errorMessage.value = "ไม่สามารถโหลดข้อมูลโรงพยาบาลได้";
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function loadFuelStationLayerOnDemand() {
-  if (!mapInstance || !leafletInstance)
-    return
+  if (!mapInstance || !leafletInstance) return;
 
-  if (fuelStationLoaded)
-    return
+  if (fuelStationLoaded) return;
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    const bounds = await loadFuelStatusStations(leafletInstance)
-    fuelStationLoaded = true
+    const bounds = await loadFuelStatusStations(leafletInstance);
+    fuelStationLoaded = true;
 
     if (!mapInstance.hasLayer(fuelStationClusterLayer))
-      fuelStationClusterLayer.addTo(mapInstance)
+      fuelStationClusterLayer.addTo(mapInstance);
 
     if (bounds.length) {
       mapInstance.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 11,
-      })
+      });
     }
 
-    refreshMapSize(300)
-  }
-  catch (error) {
-    console.error(error)
-    fuelStationLoaded = false
-    errorMessage.value = 'ไม่สามารถโหลดข้อมูลสถานีบริการน้ำมันได้'
-  }
-  finally {
-    isLoading.value = false
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    fuelStationLoaded = false;
+    errorMessage.value = "ไม่สามารถโหลดข้อมูลสถานีบริการน้ำมันได้";
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function loadB100LayerOnDemand() {
-  if (!mapInstance || !leafletInstance)
-    return
+  if (!mapInstance || !leafletInstance) return;
 
-  if (b100Loaded)
-    return
+  if (b100Loaded) return;
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    const bounds = await loadB100Suppliers(leafletInstance)
-    b100Loaded = true
+    const bounds = await loadB100Suppliers(leafletInstance);
+    b100Loaded = true;
 
     if (!mapInstance.hasLayer(b100ClusterLayer))
-      b100ClusterLayer.addTo(mapInstance)
+      b100ClusterLayer.addTo(mapInstance);
 
     if (bounds.length) {
       mapInstance.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 11,
-      })
+      });
     }
 
-    refreshMapSize(300)
-  }
-  catch (error) {
-    console.error(error)
-    b100Loaded = false
-    errorMessage.value = 'ไม่สามารถโหลดข้อมูลผู้ผลิต B100 ได้'
-  }
-  finally {
-    isLoading.value = false
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    b100Loaded = false;
+    errorMessage.value = "ไม่สามารถโหลดข้อมูลผู้ผลิต B100 ได้";
+  } finally {
+    isLoading.value = false;
   }
 }
 
 async function loadEthanolLayerOnDemand() {
-  if (!mapInstance || !leafletInstance)
-    return
+  if (!mapInstance || !leafletInstance) return;
 
-  if (ethanolLoaded)
-    return
+  if (ethanolLoaded) return;
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = "";
 
   try {
-    const bounds = await loadEthanolSuppliers(leafletInstance)
-    ethanolLoaded = true
+    const bounds = await loadEthanolSuppliers(leafletInstance);
+    ethanolLoaded = true;
 
     if (!mapInstance.hasLayer(ethanolClusterLayer))
-      ethanolClusterLayer.addTo(mapInstance)
+      ethanolClusterLayer.addTo(mapInstance);
 
     if (bounds.length) {
       mapInstance.fitBounds(bounds, {
         padding: [40, 40],
         maxZoom: 11,
-      })
+      });
     }
 
-    refreshMapSize(300)
-  }
-  catch (error) {
-    console.error(error)
-    ethanolLoaded = false
-    errorMessage.value = 'ไม่สามารถโหลดข้อมูลผู้ผลิตเอทานอลได้'
-  }
-  finally {
-    isLoading.value = false
+    refreshMapSize(300);
+  } catch (error) {
+    console.error(error);
+    ethanolLoaded = false;
+    errorMessage.value = "ไม่สามารถโหลดข้อมูลผู้ผลิตเอทานอลได้";
+  } finally {
+    isLoading.value = false;
   }
 }
 
-
 function updateLegend() {
-  if (!legendContainer || !mapInstance)
-    return
+  if (!legendContainer || !mapInstance) return;
 
   const activeItems = [
     {
       layer: storageClusterLayer,
-      label: 'คลัง / สถานที่จัดเก็บ',
-      markerClass: 'marker-storage',
+      label: "คลัง / สถานที่จัดเก็บ",
+      markerClass: "marker-storage",
     },
     {
       layer: fuelStationClusterLayer,
-      label: 'สถานีบริการน้ำมัน',
-      markerClass: 'marker-fuel-station',
+      label: "สถานีบริการน้ำมัน",
+      markerClass: "marker-fuel-station",
     },
     {
       layer: b100ClusterLayer,
-      label: 'ผู้ผลิต B100',
-      markerClass: 'marker-b100',
+      label: "ผู้ผลิต B100",
+      markerClass: "marker-b100",
     },
     {
       layer: ethanolClusterLayer,
-      label: 'ผู้ผลิตเอทานอล',
-      markerClass: 'marker-ethanol',
+      label: "ผู้ผลิตเอทานอล",
+      markerClass: "marker-ethanol",
     },
     {
       layer: policeClusterLayer,
-      label: 'สถานีตำรวจ',
-      markerClass: 'marker-police',
+      label: "สถานีตำรวจ",
+      markerClass: "marker-police",
     },
     {
       layer: fireClusterLayer,
-      label: 'สถานีดับเพลิง',
-      markerClass: 'marker-fire',
+      label: "สถานีดับเพลิง",
+      markerClass: "marker-fire",
     },
     {
       layer: hospitalClusterLayer,
-      label: 'โรงพยาบาล',
-      markerClass: 'marker-hospital',
+      label: "โรงพยาบาล",
+      markerClass: "marker-hospital",
     },
-  ].filter(item => item.layer && mapInstance.hasLayer(item.layer))
+    {
+      layer: portClusterLayer,
+      label: "ท่าเรือ",
+      markerClass: "marker-port",
+    },
+  ].filter((item) => item.layer && mapInstance.hasLayer(item.layer));
 
   if (!activeItems.length) {
-    legendContainer.innerHTML = ''
-    legendContainer.style.display = 'none'
-    return
+    legendContainer.innerHTML = "";
+    legendContainer.style.display = "none";
+    return;
   }
 
-  legendContainer.style.display = ''
+  legendContainer.style.display = "";
   legendContainer.innerHTML = `
     <div class="map-legend-title">
       ชั้นข้อมูลที่แสดง (${activeItems.length})
@@ -966,284 +1099,287 @@ function updateLegend() {
 
     <div class="map-legend-list">
       ${activeItems
-        .map(item => `
+        .map(
+          (item) => `
           <div class="map-legend-item">
             <span class="map-legend-dot ${item.markerClass}"></span>
             <span>${item.label}</span>
           </div>
-        `)
-        .join('')}
+        `,
+        )
+        .join("")}
     </div>
-  `
+  `;
 }
 
 function createLegendControl(L: any) {
   const LegendControl = L.Control.extend({
     options: {
-      position: 'bottomright',
+      position: "bottomright",
     },
 
     onAdd() {
-      legendContainer = L.DomUtil.create(
-        'div',
-        'leaflet-control map-legend',
-      )
+      legendContainer = L.DomUtil.create("div", "leaflet-control map-legend");
 
-      L.DomEvent.disableClickPropagation(legendContainer)
-      L.DomEvent.disableScrollPropagation(legendContainer)
+      L.DomEvent.disableClickPropagation(legendContainer);
+      L.DomEvent.disableScrollPropagation(legendContainer);
 
-      updateLegend()
+      updateLegend();
 
-      return legendContainer
+      return legendContainer;
     },
 
     onRemove() {
-      legendContainer = null
+      legendContainer = null;
     },
-  })
+  });
 
-  return new LegendControl()
+  return new LegendControl();
 }
 
 onMounted(async () => {
-  if (!mapEl.value)
-    return
+  if (!mapEl.value) return;
 
-  const leafletModule = await import('leaflet')
-  const L = (leafletModule as any).default || leafletModule
+  const leafletModule = await import("leaflet");
+  const L = (leafletModule as any).default || leafletModule;
 
-  ;(window as any).L = L
+  (window as any).L = L;
 
   try {
-    await import('leaflet.markercluster')
-  }
-  catch (error) {
-    console.error('Cannot load leaflet.markercluster:', error)
+    await import("leaflet.markercluster");
+  } catch (error) {
+    console.error("Cannot load leaflet.markercluster:", error);
   }
 
-  leafletInstance = L
+  leafletInstance = L;
 
   mapInstance = L.map(mapEl.value, {
     zoomControl: false,
     attributionControl: true,
-  }).setView([13.7563, 100.5018], 6)
+  }).setView([13.7563, 100.5018], 6);
 
-  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors',
-  })
+  const osm = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors",
+    },
+  );
 
-  const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+  const topo = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
     maxZoom: 17,
-    attribution: '&copy; OpenTopoMap contributors',
-  })
+    attribution: "&copy; OpenTopoMap contributors",
+  });
 
-  osm.addTo(mapInstance)
+  osm.addTo(mapInstance);
 
-  L.control.zoom({
-    position: 'topright',
-  }).addTo(mapInstance)
+  L.control
+    .zoom({
+      position: "topright",
+    })
+    .addTo(mapInstance);
 
   const FullscreenControl = L.Control.extend({
     options: {
-      position: 'topright',
+      position: "topright",
     },
 
     onAdd() {
       const container = L.DomUtil.create(
-        'div',
-        'leaflet-bar leaflet-control leaflet-control-fullscreen-wrapper',
-      )
+        "div",
+        "leaflet-bar leaflet-control leaflet-control-fullscreen-wrapper",
+      );
 
       const button = L.DomUtil.create(
-        'button',
-        'leaflet-control-fullscreen',
+        "button",
+        "leaflet-control-fullscreen",
         container,
-      )
+      );
 
-      button.type = 'button'
-      button.title = 'Fullscreen'
-      button.innerHTML = '⛶'
+      button.type = "button";
+      button.title = "Fullscreen";
+      button.innerHTML = "⛶";
 
-      L.DomEvent.disableClickPropagation(container)
-      L.DomEvent.disableScrollPropagation(container)
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.disableScrollPropagation(container);
 
-      L.DomEvent.on(button, 'click', () => {
-        const mapContainer = mapEl.value
+      L.DomEvent.on(button, "click", () => {
+        const mapContainer = mapEl.value;
 
-        if (!mapContainer)
-          return
+        if (!mapContainer) return;
 
         if (!document.fullscreenElement) {
-          mapContainer.requestFullscreen()
-          refreshMapSize(400)
-          return
+          mapContainer.requestFullscreen();
+          refreshMapSize(400);
+          return;
         }
 
-        document.exitFullscreen()
-        refreshMapSize(400)
-      })
+        document.exitFullscreen();
+        refreshMapSize(400);
+      });
 
-      return container
+      return container;
     },
-  })
+  });
 
-  mapInstance.addControl(new FullscreenControl())
+  mapInstance.addControl(new FullscreenControl());
 
-  storageClusterLayer = createClusterLayer(L, 'storage')
-  policeClusterLayer = createClusterLayer(L, 'police')
-  fireClusterLayer = createClusterLayer(L, 'fire')
-  hospitalClusterLayer = createClusterLayer(L, 'hospital')
-  fuelStationClusterLayer = createClusterLayer(L, 'fuel-station')
-  b100ClusterLayer = createClusterLayer(L, 'b100')
-  ethanolClusterLayer = createClusterLayer(L, 'ethanol')
+  storageClusterLayer = createClusterLayer(L, "storage");
+  portClusterLayer = createClusterLayer(L, "port");
+  policeClusterLayer = createClusterLayer(L, "police");
+  fireClusterLayer = createClusterLayer(L, "fire");
+  hospitalClusterLayer = createClusterLayer(L, "hospital");
+  fuelStationClusterLayer = createClusterLayer(L, "fuel-station");
+  b100ClusterLayer = createClusterLayer(L, "b100");
+  ethanolClusterLayer = createClusterLayer(L, "ethanol");
 
-  storageClusterLayer.addTo(mapInstance)
+  // เปิดเฉพาะคลังเป็นค่าเริ่มต้น
+  storageClusterLayer.addTo(mapInstance);
 
-  legendControl = createLegendControl(L)
-  legendControl.addTo(mapInstance)
-  updateLegend()
+  if (mapInstance.hasLayer(portClusterLayer))
+    mapInstance.removeLayer(portClusterLayer);
 
-  L.control.layers(
-    {
-      OpenStreetMap: osm,
-      Topographic: topo,
-    },
-    {
-      'คลัง / สถานที่จัดเก็บ': storageClusterLayer,
-      'สถานีบริการน้ำมัน': fuelStationClusterLayer,
-      'ผู้ผลิต B100': b100ClusterLayer,
-      'ผู้ผลิตเอทานอล': ethanolClusterLayer,
-      'สถานีตำรวจ': policeClusterLayer,
-      'สถานีดับเพลิง': fireClusterLayer,
-      'โรงพยาบาล': hospitalClusterLayer,
-    },
-    {
-      position: 'topright',
-      collapsed: true,
-    },
-  ).addTo(mapInstance)
+  legendControl = createLegendControl(L);
+  legendControl.addTo(mapInstance);
+  updateLegend();
 
-  mapInstance.on('overlayadd', async (event: any) => {
-    updateLegend()
+  L.control
+    .layers(
+      {
+        OpenStreetMap: osm,
+        Topographic: topo,
+      },
+      {
+        "คลัง / สถานที่จัดเก็บ": storageClusterLayer,
+        สถานีบริการน้ำมัน: fuelStationClusterLayer,
+        "ผู้ผลิต B100": b100ClusterLayer,
+        ผู้ผลิตเอทานอล: ethanolClusterLayer,
+        สถานีตำรวจ: policeClusterLayer,
+        สถานีดับเพลิง: fireClusterLayer,
+        โรงพยาบาล: hospitalClusterLayer,
+        ท่าเรือ: portClusterLayer,
+      },
+      {
+        position: "topright",
+        collapsed: true,
+      },
+    )
+    .addTo(mapInstance);
 
-    if (event.name === 'สถานีตำรวจ') {
-      await loadPoliceLayerOnDemand()
-      return
+  mapInstance.on("overlayadd", async (event: any) => {
+    updateLegend();
+
+    if (event.name === "ท่าเรือ") {
+      await loadPortLayerOnDemand();
+      return;
     }
 
-    if (event.name === 'สถานีดับเพลิง') {
-      await loadFireLayerOnDemand()
-      return
+    if (event.name === "สถานีตำรวจ") {
+      await loadPoliceLayerOnDemand();
+      return;
     }
 
-    if (event.name === 'โรงพยาบาล') {
-      await loadHospitalLayerOnDemand()
-      return
+    if (event.name === "สถานีดับเพลิง") {
+      await loadFireLayerOnDemand();
+      return;
     }
 
-    if (event.name === 'สถานีบริการน้ำมัน') {
-      await loadFuelStationLayerOnDemand()
-      return
+    if (event.name === "โรงพยาบาล") {
+      await loadHospitalLayerOnDemand();
+      return;
     }
 
-    if (event.name === 'ผู้ผลิต B100') {
-      await loadB100LayerOnDemand()
-      return
+    if (event.name === "สถานีบริการน้ำมัน") {
+      await loadFuelStationLayerOnDemand();
+      return;
     }
 
-    if (event.name === 'ผู้ผลิตเอทานอล') {
-      await loadEthanolLayerOnDemand()
+    if (event.name === "ผู้ผลิต B100") {
+      await loadB100LayerOnDemand();
+      return;
     }
-  })
 
+    if (event.name === "ผู้ผลิตเอทานอล") {
+      await loadEthanolLayerOnDemand();
+    }
+  });
 
-  mapInstance.on('overlayremove', () => {
-    updateLegend()
-  })
+  mapInstance.on("overlayremove", () => {
+    updateLegend();
+  });
 
   resizeObserver = new ResizeObserver(() => {
-    refreshMapSize(150)
-  })
+    refreshMapSize(150);
+  });
 
-  resizeObserver.observe(mapEl.value)
+  resizeObserver.observe(mapEl.value);
 
-  window.addEventListener('resize', handleWindowResize)
+  window.addEventListener("resize", handleWindowResize);
 
-  await loadInitialMapData(L)
+  await loadInitialMapData(L);
 
-  refreshMapSize(300)
-  refreshMapSize(600)
-})
+  refreshMapSize(300);
+  refreshMapSize(600);
+});
 
 watch(
   () => colorMode.value,
   () => {
-    refreshMapSize(150)
+    refreshMapSize(150);
   },
-)
+);
 
 onBeforeUnmount(() => {
-  if (resizeTimer)
-    window.clearTimeout(resizeTimer)
+  if (resizeTimer) window.clearTimeout(resizeTimer);
 
   if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
+    resizeObserver.disconnect();
+    resizeObserver = null;
   }
 
-  window.removeEventListener('resize', handleWindowResize)
+  window.removeEventListener("resize", handleWindowResize);
 
   if (mapInstance) {
-    mapInstance.off()
-    mapInstance.remove()
+    mapInstance.off();
+    mapInstance.remove();
   }
 
-  mapInstance = null
-  leafletInstance = null
+  mapInstance = null;
+  leafletInstance = null;
 
-  storageClusterLayer = null
-  policeClusterLayer = null
-  fireClusterLayer = null
-  hospitalClusterLayer = null
-  fuelStationClusterLayer = null
-  b100ClusterLayer = null
-  ethanolClusterLayer = null
+  storageClusterLayer = null;
+  portClusterLayer = null;
+  policeClusterLayer = null;
+  fireClusterLayer = null;
+  hospitalClusterLayer = null;
+  fuelStationClusterLayer = null;
+  b100ClusterLayer = null;
+  ethanolClusterLayer = null;
 
-  legendControl = null
-  legendContainer = null
+  legendControl = null;
+  legendContainer = null;
 
-  policeLoaded = false
-  fireLoaded = false
-  hospitalLoaded = false
-  fuelStationLoaded = false
-  b100Loaded = false
-  ethanolLoaded = false
-})
+  portLoaded = false;
+  policeLoaded = false;
+  fireLoaded = false;
+  hospitalLoaded = false;
+  fuelStationLoaded = false;
+  b100Loaded = false;
+  ethanolLoaded = false;
+});
 </script>
 
 <template>
-  <div
-    class="map-page"
-    :class="{ 'is-dark': colorMode.value === 'dark' }"
-  >
+  <div class="map-page" :class="{ 'is-dark': colorMode.value === 'dark' }">
     <div class="map-header">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight">
-          แผนที่
-        </h2>
+        <h2 class="text-2xl font-bold tracking-tight">รายงานแสดงผลภาพรวมทั้งประเทศ</h2>
 
-        <p
-          v-if="isLoading"
-          class="text-sm text-muted-foreground"
-        >
+        <p v-if="isLoading" class="text-sm text-muted-foreground">
           กำลังโหลดข้อมูล ...
         </p>
 
-        <p
-          v-else-if="errorMessage"
-          class="text-sm text-destructive"
-        >
+        <p v-else-if="errorMessage" class="text-sm text-destructive">
           {{ errorMessage }}
         </p>
       </div>
@@ -1482,6 +1618,10 @@ onBeforeUnmount(() => {
   --marker-color: color-mix(in oklab, var(--primary) 70%, #f97316);
 }
 
+:global(.marker-port) {
+  --marker-color: color-mix(in oklab, var(--primary) 62%, #0ea5e9);
+}
+
 :global(.marker-police) {
   --marker-color: color-mix(in oklab, var(--primary) 65%, #3b82f6);
 }
@@ -1538,6 +1678,10 @@ onBeforeUnmount(() => {
   background: color-mix(in oklab, var(--primary) 70%, #f97316);
 }
 
+:global(.cluster-port) {
+  background: color-mix(in oklab, var(--primary) 62%, #0ea5e9);
+}
+
 :global(.cluster-police) {
   background: color-mix(in oklab, var(--primary) 65%, #3b82f6);
 }
@@ -1565,7 +1709,6 @@ onBeforeUnmount(() => {
 :global(.cluster-badge span) {
   line-height: 1;
 }
-
 
 :global(.map-legend) {
   min-width: 210px;
@@ -1630,7 +1773,6 @@ onBeforeUnmount(() => {
     align-items: stretch;
     flex-direction: column;
   }
-
 
   :global(.map-legend) {
     min-width: 0;

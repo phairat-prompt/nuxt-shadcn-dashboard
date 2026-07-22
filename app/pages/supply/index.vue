@@ -1,1311 +1,852 @@
 <script setup lang="ts">
-import { defineComponent, h } from 'vue'
+import { computed } from 'vue'
 
-type SaleRow = {
-  label: string
-  color: string
-  diesel: string
-  benzine: string
+type KpiItem = {
+  title: string
+  value: number
+  unit: string
+  description: string
+  icon: string
+  secondary?: string
 }
 
-const points = {
-  A01: '59.677',
-  A02: '48.104',
-  A03: '57.458',
-  A04: '80.815',
-  A05: '33.818',
-  A06: '78.289',
-  A07: '162.689',
-  T01: '0.064',
-  T02: '0.410',
-  T03: '0.969',
-  T04: '0.880',
-  T05: '19.354',
-  T06: '21.624',
-} as const
+type SourceItem = {
+  label: string
+  value: number
+  note?: string
+  color: string
+}
 
-const saleRows: SaleRow[] = [
+type DetailItem = {
+  label: string
+  value: string
+  note?: string
+  icon: string
+}
+
+type DistributionRow = {
+  name: string
+  diesel: number | null
+  gasoline: number | null
+  icon: string
+  color: string
+}
+
+const kpiItems: KpiItem[] = [
   {
-    label: 'อื่นๆ',
-    color: 'legend-other',
-    diesel: points.T01,
-    benzine: points.T02,
+    title: 'น้ำมันดิบเข้ากลั่น',
+    value: 176.806,
+    unit: 'ล้านลิตร',
+    description: 'ปริมาณน้ำมันดิบที่เข้าสู่กระบวนการกลั่น',
+    icon: 'i-lucide-droplets',
   },
   {
-    label: 'ราชการและรัฐวิสาหกิจ',
-    color: 'legend-government',
-    diesel: points.T03,
-    benzine: points.T04,
+    title: 'การผลิตดีเซลพื้นฐานของโรงกลั่น',
+    value: 72.721,
+    unit: 'ล้านลิตร',
+    description: 'ผลผลิตจากโรงกลั่น',
+    icon: 'i-lucide-factory',
+    secondary: 'เฉลี่ย มี.ค. 78.763 ล้านลิตร',
   },
   {
-    label: 'ไฟฟ้า',
-    color: 'legend-electricity',
-    diesel: '-',
-    benzine: '-',
+    title: 'การผลิตเบนซินพื้นฐานของโรงกลั่น',
+    value: 51.203,
+    unit: 'ล้านลิตร',
+    description: 'รวมคลังโรงกลั่นและคลังภูมิภาค',
+    icon: 'i-lucide-warehouse',
+    secondary: 'เฉลี่ย มี.ค. 33.265 ล้านลิตร',
   },
   {
-    label: 'อุตสาหกรรม',
-    color: 'legend-industry',
-    diesel: points.T01,
-    benzine: points.T02,
+    title: 'รวมจำหน่ายดีเซล',
+    value: 29.364,
+    unit: 'ล้านลิตร',
+    description: 'รวมลูกค้าทั่วไปและผู้ค้าส่ง',
+    icon: 'i-lucide-fuel',
+    secondary: 'เฉลี่ย มี.ค. 78.213 ล้านลิตร',
   },
   {
-    label: 'ขนส่ง',
-    color: 'legend-transport',
-    diesel: points.T03,
-    benzine: points.T04,
-  },
-  {
-    label: 'สถานีบริการ',
-    color: 'legend-station',
-    diesel: points.T05,
-    benzine: points.T06,
+    title: 'รวมจำหน่ายเบนซิน',
+    value: 16.473,
+    unit: 'ล้านลิตร',
+    description: 'ปริมาณจำหน่ายเบนซินรวม',
+    icon: 'i-lucide-droplet',
+    secondary: 'เฉลี่ย มี.ค. 32.851 ล้านลิตร',
   },
 ]
 
-function barHeight(value: string) {
-  const max = 22
-  const height = 150
-  const numericValue = Number(value) || 0
+const crudeSources: SourceItem[] = [
+  {
+    label: 'ตะวันออกกลาง',
+    value: 53,
+    color: 'var(--oil-chart-1)',
+  },
+  {
+    label: 'ตะวันออกไกล',
+    value: 11,
+    color: 'var(--oil-chart-3)',
+  },
+  {
+    label: 'ประเทศไทย',
+    value: 9,
+    color: 'var(--oil-chart-4)',
+  },
+  {
+    label: 'อื่น ๆ',
+    value: 27,
+    // note: 'สหรัฐฯ แอฟริกาตะวันตก และออสเตรเลีย',
+    color: 'var(--oil-chart-2)',
+  },
+]
 
-  return `${Math.max((numericValue / max) * height, 3)}px`
+const procurementItems: DetailItem[] = [
+  {
+    label: 'สต๊อกดีเซลพื้นฐาน',
+    value: '1.377 ล้านลิตร',
+    note: 'เฉลี่ย ม.ค. 1.229 ล้านลิตร',
+    icon: 'i-lucide-container',
+  },
+  {
+    label: 'สต๊อกเบนซินพื้นฐาน',
+    value: '0.629 ล้านลิตร',
+    note: 'เฉลี่ย ม.ค. 0.725 ล้านลิตร',
+    icon: 'i-lucide-container',
+  },
+  {
+    label: 'ส่งออกดีเซลพื้นฐาน',
+    value: '1.645 ล้านลิตร',
+    note: 'สปป.ลาว และเมียนมา',
+    icon: 'i-lucide-truck',
+  },
+  {
+    label: 'ส่งออกเบนซิน 91–92',
+    value: '0.048 ล้านลิตร',
+    note: 'สปป.ลาว และเมียนมา',
+    icon: 'i-lucide-ship',
+  },
+]
+
+const productionItems: DetailItem[] = [
+  {
+    label: 'สต็อกกลุ่มดีเซล',
+    value: '51.203 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 40 ล้านลิตร',
+    icon: 'i-lucide-factory',
+  },
+  {
+    label: 'สต็อกกลุ่มเบนซิน',
+    value: '88 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 75 ล้านลิตร',
+    icon: 'i-lucide-warehouse',
+  },
+  {
+    label: 'การผลิตกลุ่มดีเซล',
+    value: '31.432 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 77.478 ล้านลิตร',
+    icon: 'i-lucide-leaf',
+  },
+  {
+    label: 'การผลิตกลุ่มเบนซิน',
+    value: '22.032 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 32.019 ล้านลิตร',
+    icon: 'i-lucide-flask-conical',
+  },
+]
+
+const distributionItems: DetailItem[] = [
+  {
+    label: 'ผู้ค้ามาตรา 7 — ดีเซล',
+    value: '26.866 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 72.333 ล้านลิตร',
+    icon: 'i-lucide-building-2',
+  },
+  {
+    label: 'ผู้ค้ามาตรา 7 — เบนซิน',
+    value: '16.472 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 31.491 ล้านลิตร',
+    icon: 'i-lucide-building-2',
+  },
+  {
+    label: 'ผู้ค้าส่ง (Jobber) — ดีเซล',
+    value: '2.498 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 5.498 ล้านลิตร',
+    icon: 'i-lucide-briefcase-business',
+  },
+  {
+    label: 'ผู้ค้าส่ง (Jobber) — เบนซิน',
+    value: '0.850 ล้านลิตร',
+    note: 'เฉลี่ย มี.ค. 1.625 ล้านลิตร',
+    icon: 'i-lucide-briefcase-business',
+  },
+]
+
+const distributionRows: DistributionRow[] = [
+  {
+    name: 'อื่น ๆ',
+    diesel: 0.461,
+    gasoline: 0.238,
+    icon: 'i-lucide-tractor',
+    color: 'var(--oil-chart-1)',
+  },
+  {
+    name: 'ราชการและรัฐวิสาหกิจ',
+    diesel: 0.678,
+    gasoline: 0.051,
+    icon: 'i-lucide-landmark',
+    color: 'var(--oil-chart-2)',
+  },
+  {
+    name: 'ไฟฟ้า',
+    diesel: null,
+    gasoline: null,
+    icon: 'i-lucide-zap',
+    color: 'var(--oil-chart-3)',
+  },
+  {
+    name: 'อุตสาหกรรม',
+    diesel: 0.583,
+    gasoline: 0.031,
+    icon: 'i-lucide-factory',
+    color: 'var(--oil-chart-4)',
+  },
+  {
+    name: 'ขนส่ง',
+    diesel: 0.578,
+    gasoline: 0.005,
+    icon: 'i-lucide-truck',
+    color: 'var(--oil-chart-5)',
+  },
+  {
+    name: 'สถานีบริการ',
+    diesel: 24.566,
+    gasoline: 16.148,
+    icon: 'i-lucide-fuel',
+    color: 'var(--primary)',
+  },
+]
+
+const sourceGradient = computed(() => {
+  let start = 0
+
+  const parts = crudeSources.map((item) => {
+    const end = start + item.value
+    const segment = `${item.color} ${start}% ${end}%`
+    start = end
+    return segment
+  })
+
+  return `conic-gradient(${parts.join(', ')})`
+})
+
+const dieselTotal = computed(() =>
+  distributionRows.reduce((total, row) => total + (row.diesel ?? 0), 0),
+)
+
+const gasolineTotal = computed(() =>
+  distributionRows.reduce((total, row) => total + (row.gasoline ?? 0), 0),
+)
+
+const maxBarTotal = computed(() => Math.max(dieselTotal.value, gasolineTotal.value))
+
+const BAR_HEIGHT = 120
+
+function formatNumber(value: number, digits = 3) {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })
 }
 
-const Value = defineComponent({
-  name: 'PointValue',
-  props: {
-    value: {
-      type: String,
-      required: true,
-    },
-  },
-  setup(props) {
-    return () =>
-      h(
-        'span',
-        {
-          class: 'point-value',
-        },
-        props.value,
-      )
-  },
-})
+function segmentHeight(value: number | null) {
+  if (!value || maxBarTotal.value <= 0)
+    return '0px'
 
-const InfoBlock = defineComponent({
-  name: 'SupplyInfoBlock',
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    muted: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  setup(props, { slots }) {
-    return () =>
-      h(
-        'div',
-        {
-          class: [
-            'relative min-w-0 text-foreground',
-            props.muted ? 'text-muted-foreground' : '',
-          ],
-        },
-        [
-          slots.icon
-            ? h(
-                'div',
-                {
-                  class:
-                    'mb-1.5 text-[clamp(30px,3vw,54px)] leading-none text-foreground/70',
-                },
-                slots.icon(),
-              )
-            : null,
-
-          h(
-            'h3',
-            {
-              class:
-                'mb-1.5 mt-0 text-[clamp(14px,0.9vw,16px)] font-extrabold text-foreground',
-            },
-            props.title,
-          ),
-
-          h(
-            'ul',
-            {
-              class:
-                'm-0 space-y-0.5 pl-[18px] text-[clamp(13px,0.8vw,15px)] font-semibold leading-[1.45] max-[640px]:pl-4',
-            },
-            slots.default?.(),
-          ),
-        ],
-      )
-  },
-})
+  return `${Math.max(
+    (value / maxBarTotal.value) * BAR_HEIGHT,
+    2,
+  )}px`
+}
 </script>
 
 <template>
-  <div class="overview-dashboard flex w-full flex-col gap-4">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <div>
+  <div class="oil-dashboard w-full min-w-0 space-y-3">
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between gap-2">
+      <div class="min-w-0">
         <h2 class="text-2xl font-bold tracking-tight">
-          ห่วงโซ่อุปทานน้ำมันกลุ่มดีเซลและเบนซิน
+          ห่วงโซ่อุปทานน้ามันกลุ่มดีเซลและเบนซิน
         </h2>
+
+        <!-- <p class="text-sm text-muted-foreground">
+          สรุปสถานการณ์น้ำมันกลุ่มดีเซลและเบนซิน · หน่วย: ล้านลิตร
+        </p> -->
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex shrink-0 items-center gap-2">
         <BaseDateRangePicker />
       </div>
-    </div>
+    </header>
 
-    <main class="supply-grid">
-      <!-- การจัดหาน้ำมันดิบ -->
-      <section class="min-w-0">
-        <h2 class="section-title title-crude">
-          การจัดหาน้ำมันดิบ
-        </h2>
+    <!-- KPI -->
+    <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <Card v-for="item in kpiItems" :key="item.title" class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+        <CardContent class="p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-muted-foreground">
+                {{ item.title }}
+              </p>
 
-        <Card class="dashboard-card text-center">
-          <CardContent class="p-0">
-            <h3
-              class="mb-2 mt-0 text-[clamp(14px,0.9vw,17px)] font-bold text-foreground"
-            >
-              เข้ากลั่น
-              <Value :value="points.A07" />
-              ลล.
-            </h3>
+              <div class="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span class="text-2xl font-bold tracking-tight tabular-nums">
+                  {{ formatNumber(item.value) }}
+                </span>
 
-            <div class="pie-wrap">
-              <div class="pie" />
+                <span class="text-xs font-medium text-muted-foreground">
+                  {{ item.unit }}
+                </span>
+              </div>
+            </div>
 
-              <span class="pie-label east">
-                ตะวันออกไกล: 24.25%
-              </span>
+            <div class="
+                flex size-12 shrink-0 items-center justify-center rounded-2xl
+                bg-primary/10 text-primary
+              ">
+              <Icon :name="item.icon" size="28" />
+            </div>
+          </div>
 
-              <span class="pie-label middle">
-                ตะวันออกกลาง: 19.55%
-              </span>
+          <p class="mt-2 text-xs text-muted-foreground">
+            {{ item.secondary || item.description }}
+          </p>
+        </CardContent>
+      </Card>
+    </section>
 
-              <span class="pie-label thai">
-                ไทย: 23.35%
-              </span>
+    <!-- Main dashboard -->
+    <section
+      class="
+        grid min-w-0 gap-3
+        xl:grid-cols-2
+        2xl:grid-cols-5
+      "
+    >
+      <!-- Left -->
+      <div class="min-w-0 space-y-3 2xl:col-span-1">
+        <!-- Crude sources -->
+        <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+          <CardHeader class="px-4 pb-2 pt-4">
+            <CardTitle class="text-lg">
+              การจัดหาน้ำมันดิบ
+            </CardTitle>
 
-              <span class="pie-label other-label">
-                อื่นๆ: 32.84%
-              </span>
+            <!-- <CardDescription>
+              สัดส่วนแหล่งผลิตน้ำมันดิบที่นำเข้ากลั่น
+            </CardDescription> -->
+          </CardHeader>
+
+          <CardContent class="px-4 pb-4 pt-1">
+            <div class="source-layout">
+              <div class="source-donut" :style="{ background: sourceGradient }">
+                <!-- <div class="source-donut-hole">
+                  <span class="text-xs text-muted-foreground">เข้ากลั่น</span>
+                  <strong class="text-lg tabular-nums">176.806</strong>
+                  <span class="text-[11px] text-muted-foreground">ล้านลิตร</span>
+                </div> -->
+              </div>
+
+              <div class="min-w-0 space-y-2.5">
+                <div v-for="source in crudeSources" :key="source.label" class="flex items-start gap-2">
+                  <span class="mt-1 size-2.5 shrink-0 rounded-full" :style="{ backgroundColor: source.color }" />
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-2">
+                      <p class="text-sm font-medium">
+                        {{ source.label }}
+                      </p>
+
+                      <span class="text-sm font-semibold tabular-nums">
+                        {{ source.value }}%
+                      </span>
+                    </div>
+
+                    <p v-if="source.note" class="text-xs leading-4 text-muted-foreground">
+                      {{ source.note }}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card class="dashboard-card">
-          <CardContent class="p-0">
-            <InfoBlock title="สต๊อก ถังเก็บน้ำมันพื้นฐาน">
-              <li>
-                ดีเซลพื้นฐาน
-                <Value :value="points.A05" />
-                ลล.
-              </li>
+        <!-- Procurement -->
+        <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+          <CardHeader class="px-4 pb-2 pt-4">
+            <CardTitle class="text-lg">
+              การจัดหาและสต๊อก
+            </CardTitle>
 
-              <li>
-                เบนซินพื้นฐาน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
+            <!-- <CardDescription>
+              ปริมาณคงเหลือและการส่งออก
+            </CardDescription> -->
+          </CardHeader>
 
-              <li class="muted">
-                เฉลี่ย ม.ค. 2569
-              </li>
+          <CardContent class="grid gap-2 px-4 pb-4 pt-1">
+            <div v-for="item in procurementItems" :key="item.label" class="detail-row">
+              <div class="detail-icon">
+                <Icon :name="item.icon" size="19" />
+              </div>
 
-              <li class="muted">
-                ดีเซลพื้นฐาน
-                <Value :value="points.A05" />
-                ลล.
-              </li>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium">
+                  {{ item.label }}
+                </p>
 
-              <li class="muted">
-                เบนซินพื้นฐาน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
+                <p class="text-sm font-bold tabular-nums text-primary">
+                  {{ item.value }}
+                </p>
+
+                <p v-if="item.note" class="text-xs text-muted-foreground">
+                  {{ item.note }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Center -->
+      <div class="min-w-0 space-y-3 2xl:col-span-2">
+        <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+          <CardHeader class="px-4 pb-2 pt-4">
+            <CardTitle class="text-lg">
+              สต็อกถังเก็บน้ำมันผสมและการผลิต(รวมคลังโรงกลั่นและคลังภูมิภาค)
+            </CardTitle>
+
+            <!-- <CardDescription>
+              ผลผลิตจากโรงกลั่นและน้ำมันชีวภาพ
+            </CardDescription> -->
+          </CardHeader>
+
+          <CardContent class="grid gap-2 px-4 pb-4 pt-1 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+            <div v-for="item in productionItems" :key="item.label" class="detail-card">
+              <div class="detail-icon">
+                <Icon :name="item.icon" size="20" />
+              </div>
+
+              <div class="min-w-0">
+                <p class="text-sm font-medium">
+                  {{ item.label }}
+                </p>
+
+                <p class="mt-1 text-base font-bold tabular-nums text-primary">
+                  {{ item.value }}
+                </p>
+
+                <p v-if="item.note" class="mt-1 text-xs leading-4 text-muted-foreground">
+                  {{ item.note }}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card class="dashboard-card">
-          <CardContent class="p-0">
-            <InfoBlock title="ส่งออก สปป.ลาว และเมียนมา">
-              <li>
-                ดีเซลพื้นฐาน
-                <Value :value="points.A05" />
-                ลล.
-              </li>
+        <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+          <CardHeader class="px-4 pb-2 pt-4">
+            <CardTitle class="text-lg">
+              การกระจายน้ำมัน
+            </CardTitle>
 
-              <li>
-                เบนซินพื้นฐาน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
+            <!-- <CardDescription>
+              ผู้ค้ามาตรา 7 และผู้ค้าส่ง
+            </CardDescription> -->
+          </CardHeader>
 
-              <li class="muted">
-                เฉลี่ย ม.ค. 2569
-              </li>
+          <CardContent class="grid gap-2 px-4 pb-4 pt-1 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+            <div v-for="item in distributionItems" :key="item.label" class="detail-card">
+              <div class="detail-icon">
+                <Icon :name="item.icon" size="20" />
+              </div>
 
-              <li class="muted">
-                ดีเซลพื้นฐาน
-                <Value :value="points.A05" />
-                ลล.
-              </li>
+              <div class="min-w-0">
+                <p class="text-sm font-medium">
+                  {{ item.label }}
+                </p>
 
-              <li class="muted">
-                เบนซินพื้นฐาน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
-          </CardContent>
-        </Card>
-      </section>
+                <p class="mt-1 text-base font-bold tabular-nums text-primary">
+                  {{ item.value }}
+                </p>
 
-      <!-- การผลิตน้ำมันสำเร็จรูป -->
-      <section class="min-w-0">
-        <h2 class="section-title title-production">
-          การผลิตน้ำมันสำเร็จรูป
-        </h2>
-
-        <Card class="dashboard-card">
-          <CardContent class="two-column p-0">
-            <InfoBlock title="การผลิตของโรงกลั่น">
-              <li>
-                ดีเซลพื้นฐาน
-                <Value :value="points.A01" />
-                ลล.
-
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A02" />
-                  ลล.)
-                </span>
-              </li>
-
-              <li>
-                เบนซินพื้นฐาน
-                <Value :value="points.A03" />
-                ลล.
-
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A04" />
-                  ลล.)
-                </span>
-              </li>
-            </InfoBlock>
-
-            <InfoBlock title="เฉลี่ย ม.ค. 2569" muted>
-              <li>
-                ดีเซลพื้นฐาน
-                <Value :value="points.A05" />
-                ลล.
-              </li>
-
-              <li>
-                เบนซินพื้นฐาน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
+                <p v-if="item.note" class="mt-1 text-xs leading-4 text-muted-foreground">
+                  {{ item.note }}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card class="dashboard-card">
-          <CardContent class="two-column p-0">
-            <InfoBlock title="สต๊อก ถังเก็บน้ำมันผสม">
-              <li>
-                กลุ่มดีเซล
-                <Value :value="points.A05" />
-                ลล.
-              </li>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+            <CardContent class="flex items-center gap-3 p-4">
+              <div class="detail-icon">
+                <Icon name="i-lucide-factory" size="21" />
+              </div>
 
-              <li>
-                กลุ่มเบนซิน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-foreground">
+                  จำหน่ายภาคอุตสาหกรรม
+                </p>
 
-            <InfoBlock title="เฉลี่ย ม.ค. 2569" muted>
-              <li>
-                กลุ่มดีเซล
-                <Value :value="points.A05" />
-                ลล.
-              </li>
+                <p class="text-base font-bold tabular-nums text-primary">
+                  0.024 ล้านลิตร
+                </p>
 
-              <li>
-                กลุ่มเบนซิน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
-          </CardContent>
-        </Card>
+                <p class="text-xs text-muted-foreground">
+                  เฉลี่ย มี.ค. 0.270 ล้านลิตร
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-        <!-- เส้นทางการขนส่ง -->
-        <div class="flow-row">
-          <Icon
-            name="i-mdi-truck"
-            class="flow-icon"
-          />
+          <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+            <CardContent class="flex items-center gap-3 p-4">
+              <div class="detail-icon">
+                <Icon name="i-lucide-boxes" size="21" />
+              </div>
 
-          <span class="flow-line" />
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-foreground">
+                  สต๊อกผสมน้ำมันชีวภาพ
+                </p>
 
-          <Icon
-            name="i-mdi-ferry"
-            class="flow-icon"
-          />
+                <p class="text-base font-bold tabular-nums text-primary">
+                  ไบโอดีเซล 2.189 ล้านลิตร
+                </p>
 
-          <span class="flow-line" />
-
-          <Icon
-            name="i-mdi-truck"
-            class="flow-icon"
-          />
-
-          <span class="flow-line flow-line-long" />
-
-          <Icon
-            name="i-mdi-factory"
-            class="flow-icon flow-icon-factory"
-          />
+                <p class="text-base font-bold tabular-nums text-primary">
+                  เอทานอล 2.432 ล้านลิตร
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+      </div>
 
-        <Card class="dashboard-card">
-          <CardContent class="two-column p-0">
-            <InfoBlock title="การผลิต (รวมคลังโรงกลั่น + คลังภูมิภาค)">
-              <li>
-                กลุ่มดีเซล
-                <Value :value="points.A01" />
-                ลล.
+      <!-- Right -->
+      <Card
+        class="
+          min-w-0 gap-0 overflow-hidden rounded-2xl border-border/80 py-0
+          shadow-sm
+          xl:col-span-2
+          2xl:col-span-2
+        "
+      >
+        <CardHeader class="px-4 pb-3 pt-4">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <CardTitle class="text-lg">
+                ปริมาณจำหน่ายตามปลายทาง
+              </CardTitle>
 
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A02" />
-                  ลล.)
-                </span>
-              </li>
-
-              <li>
-                กลุ่มเบนซิน
-                <Value :value="points.A03" />
-                ลล.
-
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A04" />
-                  ลล.)
-                </span>
-              </li>
-            </InfoBlock>
-
-            <InfoBlock title="เฉลี่ย ม.ค. 2569" muted>
-              <li>
-                กลุ่มดีเซล
-                <Value :value="points.A05" />
-                ลล.
-              </li>
-
-              <li>
-                กลุ่มเบนซิน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
-          </CardContent>
-        </Card>
-
-        <Card class="dashboard-card">
-          <CardContent class="lower-grid p-0">
-            <InfoBlock title="สต๊อก ผสมน้ำมันชีวภาพ">
-              <li>
-                ไบโอดีเซล
-                <Value :value="points.A05" />
-                ลล.
-              </li>
-
-              <li>
-                เอทานอล
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
-
-            <InfoBlock title="ผู้ค้ามาตรา 7 จำหน่ายไปอุตสาหกรรมและอื่น ๆ">
-              <li>
-                ดีเซลพื้นฐาน
-                <Value :value="points.A05" />
-                ลล.
-              </li>
-
-              <li class="muted">
-                เฉลี่ย ม.ค. 2569
-              </li>
-
-              <li class="muted">
-                ดีเซลพื้นฐาน
-                <Value :value="points.A05" />
-                ลล.
-              </li>
-            </InfoBlock>
-          </CardContent>
-        </Card>
-      </section>
-
-      <!-- การกระจายน้ำมัน -->
-      <section class="min-w-0">
-        <h2 class="section-title title-distribution">
-          การกระจายน้ำมัน
-        </h2>
-
-        <Card class="dashboard-card min-h-[76px]">
-          <CardContent
-            class="flex h-full items-center gap-3 p-0 text-[clamp(14px,0.9vw,16px)] font-extrabold"
-          >
-            <Icon
-              name="i-lucide-warehouse"
-              class="size-[clamp(34px,3vw,54px)] text-foreground/70"
-            />
-
-            <b>คลังภูมิภาค</b>
-          </CardContent>
-        </Card>
-
-        <Card class="dashboard-card">
-          <CardContent class="p-0">
-            <InfoBlock title="ผู้ค้าตามมาตรา 7">
-              <li>
-                ดีเซล
-                <Value :value="points.A01" />
-                ลล.
-
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A02" />
-                  ลล.)
-                </span>
-              </li>
-
-              <li>
-                เบนซิน
-                <Value :value="points.A03" />
-                ลล.
-
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A04" />
-                  ลล.)
-                </span>
-              </li>
-
-              <li class="muted">
-                เฉลี่ย ม.ค. 2569
-              </li>
-
-              <li class="muted">
-                ดีเซล
-                <Value :value="points.A05" />
-                ลล.
-              </li>
-
-              <li class="muted">
-                เบนซิน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
-
-            <div class="mt-6 flex items-center gap-2.5 text-base text-foreground">
-              <Icon
-                name="i-lucide-user-round"
-                class="size-12 text-foreground/70"
-              />
-
-              <span>
-                <Value :value="points.A05" />
-                %
-              </span>
+              <!-- <CardDescription>
+                แยกตามประเภทลูกค้าและชนิดน้ำมัน
+              </CardDescription> -->
             </div>
-          </CardContent>
-        </Card>
 
-        <Card class="dashboard-card">
-          <CardContent class="p-0">
-            <InfoBlock title="ผู้ค้าส่ง (Jobber)">
-              <li>
-                ดีเซล
-                <Value :value="points.A01" />
-                ลล.
+            <div class="flex gap-5 text-right">
+              <!-- <div>
+                <p class="text-xs text-muted-foreground">
+                  ดีเซล
+                </p>
 
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A02" />
-                  ลล.)
-                </span>
-              </li>
+                <p class="text-lg font-bold tabular-nums text-primary">
+                  {{ formatNumber(dieselTotal) }}
+                </p>
+              </div> -->
 
-              <li>
-                เบนซิน
-                <Value :value="points.A03" />
-                ลล.
+              <!-- <div>
+                <p class="text-xs text-muted-foreground">
+                  เบนซิน
+                </p>
 
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A04" />
-                  ลล.)
-                </span>
-              </li>
-
-              <li class="muted">
-                เฉลี่ย ม.ค. 2569
-              </li>
-
-              <li class="muted">
-                ดีเซล
-                <Value :value="points.A05" />
-                ลล.
-              </li>
-
-              <li class="muted">
-                เบนซิน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
-
-            <div class="mt-6 flex items-center gap-2.5 text-base text-foreground">
-              <Icon
-                name="i-lucide-user-round"
-                class="size-12 text-foreground/70"
-              />
-
-              <span>
-                <Value :value="points.A05" />
-                %
-              </span>
+                <p class="text-lg font-bold tabular-nums text-primary">
+                  {{ formatNumber(gasolineTotal) }}
+                </p>
+              </div> -->
             </div>
-          </CardContent>
-        </Card>
-      </section>
+          </div>
+        </CardHeader>
 
-      <!-- การจำหน่าย -->
-      <section class="sale-section min-w-0">
-        <h2 class="section-title title-sale">
-          การจำหน่าย
-        </h2>
-
-        <Card class="dashboard-card">
-          <CardContent class="p-0">
-            <div class="sales-chart-container">
-              <div class="sales-chart-values">
-                <div>
-                  <b class="block text-foreground">
-                    ดีเซล
-                  </b>
-
-                  <Value :value="points.T05" />
-                </div>
-
-                <div>
-                  <b class="block text-foreground">
-                    เบนซิน
-                  </b>
-
-                  <Value :value="points.T06" />
-                </div>
+        <CardContent class="p-0">
+          <div class="sales-chart">
+            <div class="stack-column">
+              <div class="stack-label">
+                <span>ดีเซล</span>
+                <strong>{{ formatNumber(dieselTotal) }}</strong>
               </div>
 
-              <div class="sales-bars">
-                <div class="stacked-bar">
-                  <span
-                    class="seg other"
-                    :style="{ height: barHeight(points.T01) }"
-                  />
-
-                  <span
-                    class="seg government"
-                    :style="{ height: barHeight(points.T03) }"
-                  />
-
-                  <span
-                    class="seg transport"
-                    :style="{ height: barHeight(points.T05) }"
-                  />
-                </div>
-
-                <div class="stacked-bar">
-                  <span
-                    class="seg other"
-                    :style="{ height: barHeight(points.T02) }"
-                  />
-
-                  <span
-                    class="seg government"
-                    :style="{ height: barHeight(points.T04) }"
-                  />
-
-                  <span
-                    class="seg transport"
-                    :style="{ height: barHeight(points.T06) }"
-                  />
-                </div>
-              </div>
-
-              <div class="w-full overflow-x-auto">
-                <table class="fuel-table">
-                  <thead>
-                    <tr>
-                      <th>หน่วย: ลล.</th>
-                      <th>ดีเซล</th>
-                      <th>เบนซิน</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <tr
-                      v-for="row in saleRows"
-                      :key="row.label"
-                    >
-                      <td>
-                        <span class="inline-flex items-center gap-[5px]">
-                          <span
-                            class="box"
-                            :class="row.color"
-                          />
-
-                          {{ row.label }}
-                        </span>
-                      </td>
-
-                      <td>
-                        <Value
-                          v-if="row.diesel !== '-'"
-                          :value="row.diesel"
-                        />
-
-                        <span v-else>
-                          -
-                        </span>
-                      </td>
-
-                      <td>
-                        <Value
-                          v-if="row.benzine !== '-'"
-                          :value="row.benzine"
-                        />
-
-                        <span v-else>
-                          -
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="stack-bar">
+                <span v-for="row in distributionRows" :key="`diesel-${row.name}`" class="stack-segment" :style="{
+                  height: segmentHeight(row.diesel),
+                  backgroundColor: row.color,
+                }" :title="`${row.name}: ${row.diesel ?? '-'}`" />
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card class="dashboard-card">
-          <CardContent class="p-0">
-            <InfoBlock title="รวมจำหน่าย">
-              <li>
-                ดีเซล
-                <Value :value="points.A01" />
-                ลล.
+            <div class="stack-column">
+              <div class="stack-label">
+                <span>เบนซิน</span>
+                <strong>{{ formatNumber(gasolineTotal) }}</strong>
+              </div>
 
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A02" />
-                  ลล.)
-                </span>
-              </li>
+              <div class="stack-bar">
+                <span v-for="row in distributionRows" :key="`gasoline-${row.name}`" class="stack-segment" :style="{
+                  height: segmentHeight(row.gasoline),
+                  backgroundColor: row.color,
+                }" :title="`${row.name}: ${row.gasoline ?? '-'}`" />
+              </div>
+            </div>
+          </div>
 
-              <li>
-                เบนซิน
-                <Value :value="points.A03" />
-                ลล.
+          <div class="overflow-x-auto border-t">
+            <table class="distribution-table">
+              <thead>
+                <tr>
+                  <th>ประเภทการจำหน่าย</th>
+                  <th>ดีเซล</th>
+                  <th>เบนซิน</th>
+                </tr>
+              </thead>
 
-                <span class="muted">
-                  (เฉลี่ย มี.ค.
-                  <Value :value="points.A04" />
-                  ลล.)
-                </span>
-              </li>
+              <tbody>
+                <tr v-for="row in distributionRows" :key="row.name">
+                  <td>
+                    <div class="flex items-center gap-2.5">
+                      <span class="size-2.5 shrink-0 rounded-sm" :style="{ backgroundColor: row.color }" />
 
-              <li class="muted">
-                เฉลี่ย ม.ค. 2569
-              </li>
+                      <div class="detail-icon size-8">
+                        <Icon :name="row.icon" size="16" />
+                      </div>
 
-              <li class="muted">
-                ดีเซล
-                <Value :value="points.A05" />
-                ลล.
-              </li>
+                      <span class="font-medium">
+                        {{ row.name }}
+                      </span>
+                    </div>
+                  </td>
 
-              <li class="muted">
-                เบนซิน
-                <Value :value="points.A06" />
-                ลล.
-              </li>
-            </InfoBlock>
-          </CardContent>
-        </Card>
-      </section>
-    </main>
+                  <td class="tabular-nums">
+                    {{ row.diesel === null ? '-' : formatNumber(row.diesel) }}
+                  </td>
+
+                  <td class="tabular-nums">
+                    {{ row.gasoline === null ? '-' : formatNumber(row.gasoline) }}
+                  </td>
+                </tr>
+              </tbody>
+
+              <tfoot>
+                <tr>
+                  <td>รวม</td>
+                  <td>{{ formatNumber(dieselTotal) }}</td>
+                  <td>{{ formatNumber(gasolineTotal) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.overview-dashboard {
-  /*
-   * สีทั้งหมดอ้างอิงจาก Shadcn Theme
-   * เมื่อเปลี่ยน Light/Dark หรือเปลี่ยน Accent Theme
-   * กราฟและส่วนประกอบจะเปลี่ยนตามอัตโนมัติ
-   */
-  --pie-east: var(--chart-1, #8b5cf6);
-  --pie-middle: var(--chart-2, #f59e0b);
-  --pie-thai: var(--chart-3, #06b6d4);
-  --pie-other: var(--chart-4, #6366f1);
-
-  --fuel-other: var(--chart-2, #22c55e);
-  --fuel-government: var(--chart-4, #3b82f6);
-  --fuel-electricity: var(--chart-5, #eab308);
-  --fuel-industry: color-mix(
-    in oklab,
-    var(--muted-foreground) 58%,
-    var(--card)
-  );
-  --fuel-transport: var(--chart-1, #f97316);
-  --fuel-station: color-mix(
-    in oklab,
-    var(--chart-1, #f97316) 72%,
-    var(--primary)
-  );
-
-  width: 100%;
-  min-width: 0;
-  color: var(--foreground);
-  font-family: Tahoma, Arial, sans-serif;
+.oil-dashboard {
+  --oil-chart-1: var(--primary);
+  --oil-chart-2: color-mix(in oklab, var(--primary) 55%, #8b5cf6);
+  --oil-chart-3: color-mix(in oklab, var(--primary) 50%, #06b6d4);
+  --oil-chart-4: color-mix(in oklab, var(--primary) 45%, #f97316);
+  --oil-chart-5: color-mix(in oklab, var(--primary) 50%, #eab308);
 }
 
-.point-value {
-  color: var(--primary);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  text-decoration: none;
-  cursor: default;
-  transition: color 200ms ease;
+.oil-dashboard :deep([data-slot='card-header']) {
+  gap: 0.2rem;
 }
 
-.supply-grid {
+.oil-dashboard :deep([data-slot='card-description']) {
+  line-height: 1.3;
+}
+
+.source-layout {
   display: grid;
-  grid-template-columns:
-    minmax(280px, 360px)
-    minmax(480px, 700px)
-    minmax(300px, 400px)
-    minmax(300px, 400px);
-  align-items: stretch;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.section-title {
-  display: flex;
-  height: clamp(44px, 3.2vw, 60px);
+  grid-template-columns: minmax(130px, 0.8fr) minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  margin: 0;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--primary) 38%,
-      var(--border)
-    );
-  border-radius: var(--radius) var(--radius) 0 0;
-  color: var(--primary-foreground);
-  font-size: clamp(20px, 1.9vw, 36px);
-  font-weight: 800;
-  line-height: 1;
-  text-align: center;
-  transition:
-    color 200ms ease,
-    background-color 200ms ease,
-    border-color 200ms ease;
-}
-
-.title-crude {
-  background: color-mix(
-    in oklab,
-    var(--primary) 82%,
-    var(--background)
-  );
-}
-
-.title-production {
-  background: var(--primary);
-}
-
-.title-distribution {
-  background: color-mix(
-    in oklab,
-    var(--primary) 72%,
-    var(--chart-2, #0ea5e9)
-  );
-}
-
-.title-sale {
-  background: color-mix(
-    in oklab,
-    var(--primary) 52%,
-    var(--chart-3, #06b6d4)
-  );
-}
-
-.dashboard-card {
-  margin-top: 0.375rem;
-  min-width: 0;
-  border-color: color-mix(
-    in oklab,
-    var(--border) 86%,
-    transparent
-  );
-  border-radius: var(--radius);
-  padding:
-    clamp(10px, 1vw, 16px)
-    clamp(12px, 1.2vw, 22px);
-  background: var(--card);
-  color: var(--card-foreground);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
-  transition:
-    color 200ms ease,
-    background-color 200ms ease,
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-}
-
-.two-column {
-  display: grid;
-  grid-template-columns: 1.35fr 0.9fr;
   gap: 1rem;
 }
 
-.lower-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.25fr;
-  gap: 1.25rem;
+.source-donut {
+  position: relative;
+  width: min(100%, 165px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 9999px;
 }
 
-.muted {
+.source-donut::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: inherit;
+  content: '';
+}
+
+.source-donut-hole {
+  position: absolute;
+  inset: 27%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: inherit;
+  background: var(--card);
+  text-align: center;
+}
+
+.detail-row,
+.detail-card {
+  display: flex;
+  min-width: 0;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  background: color-mix(in oklab, var(--muted) 18%, var(--card));
+}
+
+.detail-row {
+  align-items: center;
+  padding: 0.7rem;
+}
+
+.detail-card {
+  align-items: flex-start;
+  padding: 0.8rem;
+}
+
+.detail-icon {
+  display: flex;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.sales-chart {
+  display: flex;
+  min-height: 175px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(2rem, 5vw, 4rem);
+  padding: 0.4rem 1rem 0.65rem;
+  background:
+    linear-gradient(to bottom,
+      color-mix(in oklab, var(--border) 55%, transparent) 1px,
+      transparent 1px);
+  background-size: 100% 32px;
+}
+
+.stack-column {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stack-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.8rem;
   color: var(--muted-foreground);
 }
 
-/* =========================
-   Pie chart
-   ========================= */
-
-.pie-wrap {
-  position: relative;
-  width: min(100%, 300px);
-  aspect-ratio: 1.12 / 1;
-  margin: 0 auto;
-}
-
-.pie {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(70vw, 230px);
-  max-width: 78%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 80%,
-      transparent
-    );
-  border-radius: 50%;
-  background: conic-gradient(
-    var(--pie-east) 0 24.25%,
-    var(--pie-middle) 24.25% 43.8%,
-    var(--pie-thai) 43.8% 67.15%,
-    var(--pie-other) 67.15% 100%
-  );
-  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
-  transition:
-    background 200ms ease,
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-}
-
-.pie-label {
-  position: absolute;
-  z-index: 1;
+.stack-label strong {
   color: var(--foreground);
-  font-size: clamp(11px, 0.75vw, 13px);
-  font-weight: 600;
-  transition: color 200ms ease;
+  font-size: 1rem;
 }
 
-.east {
-  top: 30%;
-  right: 0;
-}
-
-.middle {
-  right: 4%;
-  bottom: 30%;
-}
-
-.thai {
-  bottom: 10%;
-  left: 34%;
-}
-
-.other-label {
-  top: 38%;
-  left: 0;
-}
-
-/* =========================
-   Flow icons
-   ========================= */
-
-.flow-row {
-  display: grid;
-  grid-template-columns:
-    28px minmax(32px, 1fr)
-    28px minmax(32px, 1fr)
-    28px minmax(60px, 1.8fr)
-    30px;
-  align-items: center;
-  gap: clamp(7px, 0.8vw, 12px);
-  width: 100%;
-  min-width: 0;
-  margin: 0.4rem 0;
-  padding: 9px clamp(12px, 2vw, 24px);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) * 0.35);
-  background: color-mix(
-    in oklab,
-    var(--muted) 55%,
-    var(--card)
-  );
-  color: var(--foreground);
-  transition:
-    color 200ms ease,
-    background-color 200ms ease,
-    border-color 200ms ease;
-}
-
-.flow-icon {
-  display: block;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  color: var(--foreground);
-}
-
-.flow-icon-factory {
-  width: 26px;
-  height: 26px;
-}
-
-.flow-row :deep(svg) {
-  display: block;
-  width: 100%;
-  height: 100%;
-  color: currentColor;
-  fill: currentColor;
-}
-
-.flow-line {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  height: 2px;
-  border-radius: 9999px;
-  background: color-mix(
-    in oklab,
-    var(--foreground) 82%,
-    transparent
-  );
-  transition: background-color 200ms ease;
-}
-
-.flow-line-long {
-  min-width: 60px;
-}
-
-/* =========================
-   Sales chart
-   ========================= */
-
-.sales-chart-container {
-  width: 100%;
-  min-height: 445px;
-  padding: 0.75rem;
-  border: 1px dashed
-    color-mix(
-      in oklab,
-      var(--foreground) 38%,
-      transparent
-    );
-  background: color-mix(
-    in oklab,
-    var(--card) 96%,
-    var(--muted)
-  );
-  transition:
-    background-color 200ms ease,
-    border-color 200ms ease;
-}
-
-.sales-chart-values {
+.stack-bar {
   display: flex;
-  justify-content: center;
-  gap: clamp(30px, 4vw, 70px);
-  color: var(--foreground);
-  font-size: 15px;
-  text-align: center;
-}
-
-.sales-bars {
-  display: flex;
-  height: 160px;
-  align-items: flex-end;
-  justify-content: center;
-  gap: clamp(20px, 2vw, 28px);
-  margin: 1.25rem 0;
-}
-
-.stacked-bar {
-  display: flex;
-  width: clamp(70px, 5vw, 92px);
-  height: 150px;
+  width: clamp(68px, 5vw, 88px);
+  height: 120px;
   flex-direction: column-reverse;
   justify-content: flex-start;
   overflow: hidden;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 85%,
-      transparent
-    );
-  border-top: 0;
-  background: color-mix(
-    in oklab,
-    var(--muted) 30%,
-    transparent
-  );
-  transition:
-    background-color 200ms ease,
-    border-color 200ms ease;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem 0.75rem 0 0;
+  background: var(--muted);
 }
 
-.seg {
+.stack-segment {
   display: block;
   width: 100%;
-  min-height: 3px;
-  transition: background-color 200ms ease;
+  min-height: 0;
 }
 
-.seg.other {
-  background: var(--fuel-other);
-}
-
-.seg.government {
-  background: var(--fuel-government);
-}
-
-.seg.transport {
-  background: var(--fuel-transport);
-}
-
-/* =========================
-   Table
-   ========================= */
-
-.fuel-table {
+.distribution-table {
   width: 100%;
-  min-width: 300px;
+  min-width: 520px;
   border-collapse: collapse;
-  table-layout: fixed;
   color: var(--foreground);
-  font-size: clamp(12px, 0.75vw, 13px);
+  font-size: 0.82rem;
 }
 
-.fuel-table th,
-.fuel-table td {
-  padding: 5px 6px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--card-foreground);
-  text-align: center;
-  transition:
-    color 200ms ease,
-    background-color 200ms ease,
-    border-color 200ms ease;
+.distribution-table th,
+.distribution-table td {
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
 }
 
-.fuel-table thead th {
-  background: color-mix(
-    in oklab,
-    var(--muted) 70%,
-    var(--card)
-  );
-  color: var(--foreground);
-  font-weight: 800;
+.distribution-table th {
+  background: color-mix(in oklab, var(--muted) 38%, var(--card));
+  color: var(--muted-foreground);
+  font-weight: 600;
 }
 
-.fuel-table th:first-child,
-.fuel-table td:first-child {
-  font-weight: 700;
+.distribution-table th:first-child,
+.distribution-table td:first-child {
   text-align: left;
 }
 
-.box {
-  display: inline-block;
-  width: 11px;
-  height: 11px;
-  flex: 0 0 11px;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--foreground) 14%,
-      transparent
-    );
-  transition:
-    background-color 200ms ease,
-    border-color 200ms ease;
+.distribution-table tbody tr:hover td {
+  background: color-mix(in oklab, var(--muted) 38%, transparent);
 }
 
-.legend-other {
-  background: var(--fuel-other);
+.distribution-table tfoot td {
+  border-bottom: 0;
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+  font-weight: 700;
 }
 
-.legend-government {
-  background: var(--fuel-government);
-}
-
-.legend-electricity {
-  background: var(--fuel-electricity);
-}
-
-.legend-industry {
-  background: var(--fuel-industry);
-}
-
-.legend-transport {
-  background: var(--fuel-transport);
-}
-
-.legend-station {
-  background: var(--fuel-station);
-}
-
-/* =========================
-   Responsive
-   ========================= */
-
-@media (max-width: 1500px) {
-  .supply-grid {
-    grid-template-columns: 1fr 1.5fr;
-  }
-
-  .sale-section {
-    grid-column: span 2;
+@media (max-width: 1280px) {
+  .source-layout {
+    grid-template-columns: minmax(120px, 0.55fr) minmax(0, 1fr);
   }
 }
 
-@media (max-width: 1024px) {
-  .supply-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .source-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .sale-section {
-    grid-column: auto;
-  }
-
-  .two-column,
-  .lower-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .flow-row {
-    grid-template-columns:
-      26px minmax(24px, 1fr)
-      26px minmax(24px, 1fr)
-      26px minmax(40px, 1.5fr)
-      28px;
-    padding-inline: 14px;
-  }
-
-  .flow-icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  .flow-icon-factory {
-    width: 24px;
-    height: 24px;
-  }
-}
-
-@media (max-width: 640px) {
-  .section-title {
-    border-radius:
-      calc(var(--radius) * 0.8)
-      calc(var(--radius) * 0.8)
-      0
-      0;
-  }
-
-  .flow-row {
-    grid-template-columns:
-      22px minmax(16px, 1fr)
-      22px minmax(16px, 1fr)
-      22px minmax(24px, 1.4fr)
-      24px;
-    gap: 5px;
-    padding: 8px 10px;
-  }
-
-  .flow-icon {
-    width: 19px;
-    height: 19px;
-  }
-
-  .flow-icon-factory {
-    width: 21px;
-    height: 21px;
-  }
-
-  .flow-line {
-    height: 1.5px;
-  }
-
-  .stacked-bar {
-    width: 4rem;
-  }
-
-  .sales-chart-container {
-    padding: 0.5rem;
-  }
-
-  .sales-chart-values {
-    gap: 2.5rem;
+  .sales-chart {
+    min-height: 165px;
+    gap: 2rem;
   }
 }
 </style>

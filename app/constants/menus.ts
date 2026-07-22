@@ -15,22 +15,41 @@ export const navMenu: NavMenu[] = [
         icon: "i-lucide-aperture",
         link: "/supply",
       },
+      // {
+      //   title: "Supply Chain V2",
+      //   icon: "i-lucide-castle",
+      //   link: "/supply2",
+      // },
       {
         title: "Production",
         icon: "i-lucide-layout-dashboard",
         link: "/production",
       },
+      // {
+      //   title: "Production V2",
+      //   icon: "i-lucide-layout-dashboard",
+      //   link: "/production2",
+      // },
       {
         title: "Diesel Distribution",
         icon: "i-lucide:factory",
         link: "/dieselfuel",
       },
+      // {
+      //   title: "Diesel Distribution V2",
+      //   icon: "i-lucide:factory",
+      //   link: "/dieselfuel2",
+      // },
       {
         title: "Bensin Distribution",
         icon: "i-lucide:factory",
         link: "/bensinfuel",
       },
-
+      // {
+      //   title: "Bensin Distribution V2",
+      //   icon: "i-lucide:factory",
+      //   link: "/bensinfuel2",
+      // },
       {
         title: "Reserve",
         icon: "i-lucide-boxes",
@@ -46,6 +65,21 @@ export const navMenu: NavMenu[] = [
         icon: "i-lucide-sailboat",
         link: "/refinery",
       },
+      {
+        title: "Remaining",
+        icon: "i-lucide-map",
+        link: "/remaining",
+      },
+      // {
+      //   title: "Vessel Calendar",
+      //   icon: "i-lucide-sailboat",
+      //   link: "/calendar",
+      // },
+      // {
+      //   title: "Test",
+      //   icon: "i-lucide-sailboat",
+      //   link: "/test",
+      // },
     ],
   },
   // {

@@ -1,335 +1,80 @@
-<template>
-  <div class="production-page">
-    <header class="production-toolbar">
-      <div class="min-w-0">
-        <h2 class="text-2xl font-bold tracking-tight">
-          การผลิตและจำหน่ายดีเซลหมุนเร็ว
-        </h2>
-      </div>
-
-      <div class="shrink-0">
-        <BaseDateRangePicker />
-      </div>
-    </header>
-
-    <Card class="production-card">
-      <CardContent class="p-0">
-        <div
-          ref="stageWrapper"
-          class="stage-wrapper"
-        >
-          <div
-            class="stage-canvas"
-            :style="canvasStyle"
-          >
-            <div
-              class="production-stage"
-              :style="stageStyle"
-            >
-              <div class="unit-label">
-                หน่วย: ลล. = ล้านลิตร
-              </div>
-
-              <!-- ผลิตภัณฑ์อื่นจากการกลั่น -->
-              <div class="top-note byproduct-note">
-                <div class="top-note-card">
-                  <h3>ผลิตภัณฑ์อื่นที่ได้จากการกลั่น</h3>
-                  <p>เช่น เบนซิน น้ำมันเตา LPG ยางมะตอย</p>
-                </div>
-
-                <div class="arrow-up" />
-              </div>
-
-              <!-- เติมไบโอดีเซล -->
-              <div class="top-note biodiesel-note">
-                <div class="top-note-card">
-                  <h3>เติมไบโอดีเซล</h3>
-
-                  <strong>
-                    2.189
-                    <span>ลล.</span>
-                  </strong>
-                </div>
-
-                <div class="arrow-down-theme" />
-              </div>
-
-              <!-- น้ำมันดิบ -->
-              <div class="node crude-node">
-                <h2>น้ำมันดิบ</h2>
-                <p>เข้ากลั่น</p>
-
-                <strong>
-                  176.806
-                  <span>ลล.</span>
-                </strong>
-              </div>
-
-              <div class="h-arrow arrow-crude-refinery" />
-
-              <!-- โรงกลั่น -->
-              <div class="node refinery-node">
-                <h2>โรงกลั่น</h2>
-                <p>ผลิตดีเซลพื้นฐาน</p>
-
-                <strong>
-                  72.721
-                  <span>ลล.</span>
-                </strong>
-              </div>
-
-              <div class="h-arrow arrow-refinery-trader" />
-
-              <!-- โรงกลั่นไปส่งออก -->
-              <div class="v-arrow arrow-refinery-export" />
-
-              <!-- ไปภาคอุตสาหกรรม -->
-              <div class="v-arrow arrow-industry" />
-
-              <!-- ผู้ค้าน้ำมัน -->
-              <div class="node trader-node">
-                <h2>ผู้ค้าน้ำมันรายใหญ่</h2>
-                <p>(โรงกลั่นและผู้ค้าน้ำมันตามมาตรา 7)</p>
-
-                <p class="strong-line">
-                  ผลิตดีเซลหมุนเร็ว
-
-                  <strong>
-                    31.432
-                    <span>ลล.</span>
-                  </strong>
-                </p>
-              </div>
-
-              <div class="h-arrow arrow-trader-customer" />
-
-              <!-- ลูกค้าปลายทาง -->
-              <div class="node customer-node">
-                <h2>ลูกค้าปลายทาง</h2>
-                <p>ปริมาณจำหน่ายดีเซลหมุนเร็ว</p>
-
-                <strong>
-                  29.364
-                  <span>ลล.</span>
-                </strong>
-
-                <p class="avg">
-                  (เฉลี่ย ม.ค. – ก.พ. : 69.862 ลล.)
-                </p>
-              </div>
-
-              <!-- แหล่งน้ำมันดิบ -->
-              <section class="source-section">
-                <div
-                  v-for="item in crudeSources"
-                  :key="item.label"
-                  class="source-row"
-                >
-                  <div class="source-label">
-                    <span
-                      v-if="item.flag"
-                      class="flag"
-                    >
-                      {{ item.flag }}
-                    </span>
-
-                    <span>{{ item.label }}</span>
-
-                    <small v-if="item.sub">
-                      {{ item.sub }}
-                    </small>
-                  </div>
-
-                  <div class="bar-track">
-                    <div
-                      class="bar-fill"
-                      :style="{ width: `${item.value}%` }"
-                    >
-                      {{ item.value }}%
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <!-- การขนส่ง -->
-              <section class="transport-box">
-                <h3>การขนส่ง</h3>
-
-                <div
-                  v-for="item in transport"
-                  :key="item.label"
-                  class="transport-row"
-                >
-                  <span class="transport-icon">
-                    {{ item.icon }}
-                  </span>
-
-                  <span>{{ item.label }}</span>
-
-                  <strong>
-                    {{ item.value }}%
-                  </strong>
-                </div>
-              </section>
-
-              <!-- ภาคอุตสาหกรรม -->
-              <section class="industry-box">
-                <h2>จำหน่ายภาคอุตสาหกรรม</h2>
-                <p>เช่น โรงไฟฟ้า เรือเดินสมุทร</p>
-
-                <strong>
-                  0.024
-                  <span>ลล.</span>
-                </strong>
-              </section>
-
-              <!-- ส่งออก -->
-              <section class="export-box">
-                <div class="truck">
-                  🚚
-                </div>
-
-                <div>
-                  <h2>ส่งออก</h2>
-                  <p>สปป.ลาว+เมียนมา</p>
-
-                  <strong>
-                    1.645
-                    <span>ลล.</span>
-                  </strong>
-                </div>
-              </section>
-
-              <!-- ตารางจำหน่าย -->
-              <section class="sales-section">
-                <table class="sales-table">
-                  <thead>
-                    <tr>
-                      <th>จำหน่ายให้สาขา</th>
-                      <th>เฉลี่ย ม.ค.</th>
-                      <th>ปริมาณ</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <tr
-                      v-for="row in salesRows"
-                      :key="row.name"
-                    >
-                      <td>
-                        <div class="sale-name">
-                          <span class="sale-icon">
-                            {{ row.icon }}
-                          </span>
-
-                          <div>
-                            <b>{{ row.name }}</b>
-
-                            <small v-if="row.note">
-                              {{ row.note }}
-                            </small>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td>{{ row.avg }}</td>
-                      <td>{{ row.value }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-</template>
-
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed } from 'vue'
 
-const CANVAS_WIDTH = 1680
-const CANVAS_HEIGHT = 860
-
-const MIN_READABLE_SCALE = 0.55
-const VIEWPORT_HEIGHT_OFFSET = 190
-
-const stageWrapper = ref<HTMLElement | null>(null)
-const scale = ref(1)
-
-let resizeObserver: ResizeObserver | null = null
-
-const updateScale = () => {
-  const wrapperWidth
-    = stageWrapper.value?.clientWidth || CANVAS_WIDTH
-
-  const availableHeight = Math.max(
-    520,
-    window.innerHeight - VIEWPORT_HEIGHT_OFFSET,
-  )
-
-  const scaleByWidth = wrapperWidth / CANVAS_WIDTH
-  const scaleByHeight = availableHeight / CANVAS_HEIGHT
-
-  const fitScale = Math.min(
-    scaleByWidth,
-    scaleByHeight,
-    1,
-  )
-
-  scale.value = Math.max(
-    fitScale,
-    MIN_READABLE_SCALE,
-  )
+type MetricCard = {
+  title: string
+  subtitle: string
+  value: number
+  unit: string
+  icon: string
+  comparison?: string
 }
 
-const canvasStyle = computed(() => ({
-  width: `${CANVAS_WIDTH * scale.value}px`,
-  height: `${CANVAS_HEIGHT * scale.value}px`,
-}))
 
-const stageStyle = computed(() => ({
-  width: `${CANVAS_WIDTH}px`,
-  height: `${CANVAS_HEIGHT}px`,
-  transform: `scale(${scale.value})`,
-}))
+type SourceItem = {
+  label: string
+  description?: string
+  value: number
+}
 
-onMounted(async () => {
-  await nextTick()
+type TransportItem = {
+  label: string
+  value: number
+  icon: string
+  color: string
+}
 
-  updateScale()
+type SalesRow = {
+  name: string
+  note?: string
+  average: number
+  value: number
+  icon: string
+}
 
-  resizeObserver = new ResizeObserver(() => {
-    updateScale()
-  })
+const metrics: MetricCard[] = [
+  {
+    title: 'น้ำมันดิบเข้ากลั่น',
+    subtitle: 'ปริมาณน้ำมันดิบที่เข้าสู่กระบวนการกลั่น',
+    value: 176.806,
+    unit: 'ล้านลิตร',
+    icon: 'i-lucide-droplets',
+  },
+  {
+    title: 'ผลิตดีเซลพื้นฐาน',
+    subtitle: 'ผลผลิตจากโรงกลั่น',
+    value: 72.721,
+    unit: 'ล้านลิตร',
+    icon: 'i-lucide-factory',
+    comparison: 'เฉลี่ย มี.ค. 78.763 ล้านลิตร',
+  },
+  {
+    title: 'ผลิตดีเซลหมุนเร็ว',
+    subtitle: 'โรงกลั่นและผู้ค้าน้ำมันตามมาตรา 7',
+    value: 31.432,
+    unit: 'ล้านลิตร',
+    icon: 'i-lucide-warehouse',
+    comparison: 'เติมไบโอดีเซล 2.189 ล้านลิตร',
+  },
+  {
+    title: 'จำหน่ายลูกค้าปลายทาง',
+    subtitle: 'ปริมาณจำหน่ายดีเซลหมุนเร็ว',
+    value: 29.364,
+    unit: 'ล้านลิตร',
+    icon: 'i-lucide-fuel',
+    comparison: 'เฉลี่ย ม.ค.–ก.พ. 69.862 ล้านลิตร',
+  },
+]
 
-  if (stageWrapper.value) {
-    resizeObserver.observe(stageWrapper.value)
-  }
 
-  window.addEventListener('resize', updateScale)
-})
-
-onBeforeUnmount(() => {
-  resizeObserver?.disconnect()
-  window.removeEventListener('resize', updateScale)
-})
-
-const crudeSources = [
+const crudeSources: SourceItem[] = [
   {
     label: 'ตะวันออกกลาง',
     value: 53,
   },
   {
     label: 'อื่น ๆ',
-    sub: '(สหรัฐฯ เวสต์แอฟริกา ออสเตรเลีย)',
+    description: 'สหรัฐฯ แอฟริกาตะวันตก และออสเตรเลีย',
     value: 27,
   },
   {
@@ -337,866 +82,493 @@ const crudeSources = [
     value: 11,
   },
   {
-    label: 'ไทย',
+    label: 'ประเทศไทย',
     value: 9,
-    flag: '🇹🇭',
   },
 ]
 
-const transport = [
+const transportItems: TransportItem[] = [
   {
-    icon: '🚚',
-    label: 'ท่อ',
-    value: 32.8,
-  },
-  {
-    icon: '🚛',
     label: 'รถ',
     value: 44.7,
+    icon: 'i-lucide-truck',
+    color: 'var(--chart-1)',
   },
   {
-    icon: '🚢',
+    label: 'ท่อ',
+    value: 32.8,
+    icon: 'i-lucide-route',
+    color: 'var(--chart-2)',
+  },
+  {
     label: 'เรือ',
     value: 22.5,
+    icon: 'i-lucide-ship',
+    color: 'var(--chart-3)',
   },
 ]
 
-const salesRows = [
+const salesRows: SalesRow[] = [
   {
-    icon: '⛽',
+    icon: 'i-lucide-fuel',
     name: 'สถานีบริการน้ำมัน',
-    note: '',
-    avg: '51.300',
-    value: '24.566',
+    average: 51.300,
+    value: 24.566,
   },
   {
-    icon: '👷',
+    icon: 'i-lucide-briefcase-business',
     name: 'จ๊อบเบอร์',
-    note: '(ผู้ค้าน้ำมันตามมาตรา 10)',
-    avg: '7.389',
-    value: '2.498',
+    note: 'ผู้ค้าน้ำมันตามมาตรา 10',
+    average: 7.389,
+    value: 2.498,
   },
   {
-    icon: '🏭',
+    icon: 'i-lucide-factory',
     name: 'อุตสาหกรรม',
-    note: '',
-    avg: '4.000',
-    value: '0.583',
+    average: 4.000,
+    value: 0.583,
   },
   {
-    icon: '🚌',
+    icon: 'i-lucide-bus-front',
     name: 'ขนส่ง',
     note: 'เช่น รถขนส่ง',
-    avg: '1.120',
-    value: '0.578',
+    average: 1.120,
+    value: 0.578,
   },
   {
-    icon: '🏛️',
+    icon: 'i-lucide-landmark',
     name: 'ราชการและรัฐวิสาหกิจ',
-    note: '',
-    avg: '1.180',
-    value: '0.678',
+    average: 1.180,
+    value: 0.678,
   },
   {
-    icon: '🚜',
+    icon: 'i-lucide-tractor',
     name: 'อื่น ๆ',
-    note: 'เช่น ไฟฟ้า เกษตร ประมง',
-    avg: '2.990',
-    value: '0.461',
+    note: 'ไฟฟ้า เกษตร และประมง',
+    average: 2.990,
+    value: 0.461,
   },
 ]
+
+const totalSales = computed(() => (
+  salesRows.reduce((total, row) => total + row.value, 0)
+))
+
+const transportGradient = computed(() => {
+  let start = 0
+
+  const segments = transportItems.map((item) => {
+    const end = start + item.value
+    const segment = `${item.color} ${start}% ${end}%`
+    start = end
+    return segment
+  })
+
+  return `conic-gradient(${segments.join(', ')})`
+})
+
+function formatNumber(value: number) {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  })
+}
 </script>
 
+<template>
+  <div class="production-dashboard w-full min-w-0 space-y-3">
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between gap-2">
+      <div class="min-w-0">
+        <h2 class="text-2xl font-bold tracking-tight">
+          การผลิตและจำหน่ายน้ำมันกลุ่มดีเซล
+        </h2>
+
+        <!-- <p class="text-sm text-muted-foreground">
+          ติดตามการจัดหา การผลิต การกระจาย และการจำหน่ายน้ำมัน · หน่วย: ล้านลิตร
+        </p> -->
+      </div>
+
+      <div class="flex shrink-0 items-center gap-2">
+        <BaseDateRangePicker />
+      </div>
+    </header>
+
+    <!-- KPI cards -->
+    <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <Card
+        v-for="metric in metrics"
+        :key="metric.title"
+        class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm"
+      >
+        <CardContent class="p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-muted-foreground">
+                {{ metric.title }}
+              </p>
+
+              <div class="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span class="text-2xl font-bold tracking-tight tabular-nums">
+                  {{ formatNumber(metric.value) }}
+                </span>
+
+                <span class="text-xs font-medium text-muted-foreground">
+                  {{ metric.unit }}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Icon :name="metric.icon" size="30" />
+            </div>
+          </div>
+
+          <p class="mt-2 text-xs text-muted-foreground">
+            {{ metric.comparison || metric.subtitle }}
+          </p>
+        </CardContent>
+      </Card>
+    </section>
+
+    <!-- Main dashboard -->
+    <section
+      class="
+        grid min-w-0 gap-3
+        xl:grid-cols-[minmax(340px,0.75fr)_minmax(0,1.65fr)]
+      "
+    >
+      <!-- Left column -->
+      <div class="min-w-0 space-y-3">
+        <!-- Sources -->
+        <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+          <CardHeader class="px-4 pb-2 pt-4">
+            <CardTitle class="text-lg">
+              แหล่งน้ำมันดิบ
+            </CardTitle>
+
+            <CardDescription>
+              สัดส่วนแหล่งผลิตน้ำมันดิบที่นำเข้ากลั่น
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent class="space-y-4 px-4 pb-4 pt-1">
+            <div
+              v-for="source in crudeSources"
+              :key="source.label"
+              class="space-y-1.5"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium">
+                    {{ source.label }}
+                  </p>
+
+                  <p
+                    v-if="source.description"
+                    class="text-xs text-muted-foreground"
+                  >
+                    {{ source.description }}
+                  </p>
+                </div>
+
+                <span class="text-sm font-semibold tabular-nums">
+                  {{ source.value }}%
+                </span>
+              </div>
+
+              <div class="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  class="h-full rounded-full bg-primary transition-all"
+                  :style="{ width: `${source.value}%` }"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Transport donut -->
+        <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+          <CardHeader class="px-4 pb-2 pt-4">
+            <CardTitle class="text-lg">
+              สัดส่วนการขนส่ง
+            </CardTitle>
+
+            <CardDescription>
+              ช่องทางการขนส่งน้ำมันไปยังคลังและลูกค้า
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent class="px-4 pb-4 pt-1">
+            <div class="transport-layout">
+              <div
+                class="transport-donut"
+                :style="{ background: transportGradient }"
+              >
+                <div class="transport-donut-hole">
+                  <span class="text-xs text-muted-foreground">รวม</span>
+                  <strong class="text-xl">100%</strong>
+                </div>
+              </div>
+
+              <div class="w-full space-y-3">
+                <div
+                  v-for="item in transportItems"
+                  :key="item.label"
+                  class="flex items-center gap-2.5 rounded-xl border p-2.5"
+                >
+                  <div
+                    class="
+                      flex size-9 shrink-0 items-center justify-center
+                      rounded-lg
+                    "
+                    :style="{
+                      backgroundColor:
+                        `color-mix(in oklab, ${item.color} 12%, transparent)`,
+                      color: item.color,
+                    }"
+                  >
+                    <Icon :name="item.icon" class="size-4" />
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium">
+                      {{ item.label }}
+                    </p>
+
+                    <p class="text-xs text-muted-foreground">
+                      ช่องทางขนส่ง
+                    </p>
+                  </div>
+
+                  <strong class="tabular-nums">
+                    {{ item.value.toFixed(1) }}%
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Sales table -->
+      <Card class="min-w-0 gap-0 overflow-hidden rounded-2xl border-border/80 py-0 shadow-sm">
+        <CardHeader class="px-4 pb-3 pt-4">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <CardTitle class="text-lg">
+                ปริมาณจำหน่ายตามปลายทาง
+              </CardTitle>
+
+              <CardDescription>
+                เปรียบเทียบค่าเฉลี่ยเดือนมกราคมกับปริมาณปัจจุบัน
+              </CardDescription>
+            </div>
+
+            <div class="text-right">
+              <p class="text-xs text-muted-foreground">
+                รวมปริมาณ
+              </p>
+
+              <p class="text-xl font-bold tabular-nums text-primary">
+                {{ formatNumber(totalSales) }}
+                <span class="text-xs font-medium text-muted-foreground">
+                  ลล.
+                </span>
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent class="p-0">
+          <div class="overflow-x-auto">
+            <table class="sales-table">
+              <thead>
+                <tr>
+                  <th>ประเภทการจำหน่าย</th>
+                  <th>เฉลี่ย ม.ค.</th>
+                  <th>ปริมาณ</th>
+                  <th>สัดส่วน</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr
+                  v-for="row in salesRows"
+                  :key="row.name"
+                >
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="
+                          flex size-9 shrink-0 items-center justify-center
+                          rounded-lg bg-muted text-muted-foreground
+                        "
+                      >
+                        <Icon :name="row.icon" class="size-4" />
+                      </div>
+
+                      <div class="min-w-0">
+                        <p class="font-medium text-foreground">
+                          {{ row.name }}
+                        </p>
+
+                        <p
+                          v-if="row.note"
+                          class="text-xs text-muted-foreground"
+                        >
+                          {{ row.note }}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="tabular-nums">
+                    {{ formatNumber(row.average) }}
+                  </td>
+
+                  <td class="font-semibold tabular-nums text-foreground">
+                    {{ formatNumber(row.value) }}
+                  </td>
+
+                  <td>
+                    <div class="flex min-w-[130px] items-center gap-2">
+                      <div class="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          class="h-full rounded-full bg-primary"
+                          :style="{
+                            width: `${Math.max((row.value / totalSales) * 100, 2)}%`,
+                          }"
+                        />
+                      </div>
+
+                      <span
+                        class="
+                          w-12 text-right text-xs font-medium tabular-nums
+                          text-muted-foreground
+                        "
+                      >
+                        {{ ((row.value / totalSales) * 100).toFixed(1) }}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
+  </div>
+</template>
+
 <style scoped>
-.production-page {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1rem;
-  overflow-x: hidden;
-  color: var(--foreground);
-
-  --canvas-bg: var(--card);
-
-  --card-bg:
-    color-mix(
-      in oklab,
-      var(--primary) 9%,
-      var(--card)
-    );
-
-  --soft-bg:
-    color-mix(
-      in oklab,
-      var(--muted) 72%,
-      var(--card)
-    );
-
-  --table-head: var(--primary);
-
-  --table-row:
-    color-mix(
-      in oklab,
-      var(--muted) 72%,
-      var(--card)
-    );
-
-  --text-main: var(--foreground);
-  --text-muted: var(--muted-foreground);
-  --value-color: var(--primary);
-
-  --arrow:
-    color-mix(
-      in oklab,
-      var(--primary) 42%,
-      var(--muted-foreground)
-    );
-
-  --shadow:
-    0 2px 8px
-    color-mix(
-      in oklab,
-      var(--foreground) 15%,
-      transparent
-    );
+.production-dashboard {
+  --chart-1: var(--primary);
+  --chart-2: color-mix(in oklab, var(--primary) 55%, #10b981);
+  --chart-3: color-mix(in oklab, var(--primary) 45%, #f97316);
+  --chart-4: color-mix(in oklab, var(--primary) 50%, #8b5cf6);
 }
 
-.production-page,
-.production-page * {
-  box-sizing: border-box;
+
+
+.production-dashboard :deep([data-slot='card-header']) {
+  gap: 0.2rem;
 }
 
-.production-toolbar {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
+.production-dashboard :deep([data-slot='card-description']) {
+  line-height: 1.3;
+}
+
+.production-dashboard :deep([data-slot='card-title']) {
+  line-height: 1.25;
+}
+
+.transport-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.9fr) minmax(170px, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.production-card {
-  min-width: 0;
-  overflow: hidden;
-  border-color:
-    color-mix(
-      in oklab,
-      var(--border) 88%,
-      transparent
-    );
-  background: var(--card);
-  color: var(--card-foreground);
-}
-
-.stage-wrapper {
+.transport-donut {
   position: relative;
-  width: 100%;
-  max-width: 100%;
-  overflow: auto;
-  border-radius: calc(var(--radius) - 2px);
-  background: var(--canvas-bg);
-}
-
-.stage-canvas {
-  position: relative;
+  width: min(100%, 180px);
+  aspect-ratio: 1;
   margin: 0 auto;
-  background: var(--canvas-bg);
+  border-radius: 9999px;
 }
 
-.production-stage {
-  --box-w: 350px;
-  --box-h: 120px;
-  --main-top: 210px;
-  --top-box-top: 10px;
-
+.transport-donut::after {
   position: absolute;
   inset: 0;
-  color: var(--text-main);
-  background: var(--canvas-bg);
-  font-family: Tahoma, Arial, sans-serif;
-  transform-origin: top left;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: inherit;
+  content: '';
 }
 
-.unit-label {
+.transport-donut-hole {
   position: absolute;
-  top: 16px;
-  right: 24px;
-  color: var(--value-color);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-/* =========================
-   Top cards
-   ========================= */
-
-.top-note {
-  position: absolute;
-  width: var(--box-w);
-  color: var(--text-main);
-  text-align: center;
-}
-
-.top-note-card {
-  position: relative;
-  z-index: 20;
-  display: grid;
-  width: var(--box-w);
-  height: var(--box-h);
-  align-content: center;
-  padding: 14px 18px;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 80%,
-      transparent
-    );
-  border-radius: 8px;
-  background: var(--card-bg);
-  box-shadow: var(--shadow);
-}
-
-.top-note h3 {
-  margin: 0;
-  color: var(--text-main);
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.top-note p {
-  margin: 4px 0 0;
-  color: var(--text-main);
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.top-note strong {
-  display: block;
-  color: var(--value-color);
-  font-size: 30px;
-  font-weight: 900;
-  line-height: 1.05;
-}
-
-.top-note strong span {
-  color: var(--text-main);
-  font-size: 0.56em;
-}
-
-.byproduct-note {
-  top: var(--top-box-top);
-  left: 445px;
-}
-
-.biodiesel-note {
-  top: var(--top-box-top);
-  left: 880px;
-}
-
-/* =========================
-   Top arrows
-   ========================= */
-
-.arrow-up {
-  position: absolute;
-  top: 150px;
-  left: 50%;
-  z-index: 2;
-  width: 18px;
-  height: 42px;
-  border-radius: 2px;
-  background: var(--arrow);
-  transform: translateX(-50%);
-}
-
-.arrow-up::before {
-  position: absolute;
-  top: -24px;
-  left: 50%;
-  border-right: 24px solid transparent;
-  border-bottom: 28px solid var(--arrow);
-  border-left: 24px solid transparent;
-  content: "";
-  transform: translateX(-50%);
-}
-
-.arrow-down-theme {
-  position: absolute;
-  top: 132px;
-  left: 50%;
-  z-index: 2;
-  width: 18px;
-  height: 42px;
-  border-radius: 2px;
-  background: var(--arrow);
-  transform: translateX(-50%);
-}
-
-.arrow-down-theme::after {
-  position: absolute;
-  bottom: -24px;
-  left: 50%;
-  border-top: 28px solid var(--arrow);
-  border-right: 24px solid transparent;
-  border-left: 24px solid transparent;
-  content: "";
-  transform: translateX(-50%);
-}
-
-/* =========================
-   Main nodes
-   ========================= */
-
-.node {
-  position: absolute;
-  z-index: 10;
-  display: grid;
-  width: var(--box-w);
-  height: var(--box-h);
-  align-content: center;
-  padding: 14px 18px;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 80%,
-      transparent
-    );
-  border-radius: 8px;
-  background: var(--card-bg);
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-
-.node h2,
-.industry-box h2,
-.export-box h2 {
-  margin: 0 0 4px;
-  color: var(--text-main);
-  font-size: 30px;
-  font-weight: 900;
-  line-height: 1.08;
-}
-
-.node p,
-.industry-box p,
-.export-box p {
-  margin: 2px 0;
-  color: var(--text-main);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.node strong,
-.industry-box strong,
-.export-box strong {
-  color: var(--value-color);
-  font-size: 34px;
-  font-weight: 900;
-  line-height: 1.05;
-}
-
-.node strong span,
-.industry-box strong span,
-.export-box strong span {
-  color: var(--text-main);
-  font-size: 0.56em;
-}
-
-.crude-node {
-  top: var(--main-top);
-  left: 10px;
-}
-
-.refinery-node {
-  top: var(--main-top);
-  left: 445px;
-}
-
-.trader-node {
-  top: var(--main-top);
-  left: 880px;
-}
-
-.customer-node {
-  top: var(--main-top);
-  left: 1310px;
-}
-
-.trader-node h2,
-.customer-node h2 {
-  font-size: 28px;
-}
-
-.trader-node p,
-.customer-node p {
-  font-size: 17px;
-}
-
-.trader-node .strong-line {
-  font-weight: 900;
-}
-
-.customer-node .avg {
-  font-size: 16px;
-  font-weight: 900;
-}
-
-/* =========================
-   Horizontal arrows
-   ========================= */
-
-.h-arrow {
-  --arrow-line-height: 14px;
-  --arrow-head-width: 34px;
-  --arrow-head-height: 40px;
-
-  position: absolute;
+  inset: 25%;
   z-index: 1;
-  height: var(--arrow-head-height);
-}
-
-.h-arrow::before {
-  position: absolute;
-  top: 50%;
-  right: var(--arrow-head-width);
-  left: 0;
-  height: var(--arrow-line-height);
-  background: var(--arrow);
-  content: "";
-  transform: translateY(-50%);
-}
-
-.h-arrow::after {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  border-top:
-    calc(var(--arrow-head-height) / 2)
-    solid transparent;
-  border-bottom:
-    calc(var(--arrow-head-height) / 2)
-    solid transparent;
-  border-left:
-    var(--arrow-head-width)
-    solid var(--arrow);
-  content: "";
-  transform: translateY(-50%);
-}
-
-.arrow-crude-refinery {
-  top: 250px;
-  left: 350px;
-  width: 95px;
-}
-
-.arrow-refinery-trader {
-  top: 250px;
-  left: 785px;
-  width: 95px;
-}
-
-.arrow-trader-customer {
-  top: 250px;
-  left: 1220px;
-  width: 90px;
-}
-
-/* =========================
-   Vertical arrows
-   ========================= */
-
-.v-arrow {
-  --v-arrow-line-width: 18px;
-  --v-arrow-head-width: 42px;
-  --v-arrow-head-height: 30px;
-
-  position: absolute;
-  z-index: 2;
-  width: var(--v-arrow-line-width);
-  border-radius: 2px;
-  background: var(--arrow);
-  transform: translateX(-50%);
-}
-
-.v-arrow::after {
-  position: absolute;
-  bottom: calc(var(--v-arrow-head-height) * -1);
-  left: 50%;
-  border-top:
-    var(--v-arrow-head-height)
-    solid var(--arrow);
-  border-right:
-    calc(var(--v-arrow-head-width) / 2)
-    solid transparent;
-  border-left:
-    calc(var(--v-arrow-head-width) / 2)
-    solid transparent;
-  content: "";
-  transform: translateX(-50%);
-}
-
-/* ลูกศรลงส่งออก */
-.arrow-refinery-export {
-  top: 340px;
-  left: 525px;
-  height: 335px;
-}
-
-/* ลูกศรลงภาคอุตสาหกรรม */
-.arrow-industry {
-  top: 330px;
-  left: 680px;
-  height: 195px;
-}
-
-/* =========================
-   Source bars
-   ========================= */
-
-.source-section {
-  position: absolute;
-  top: 365px;
-  left: 30px;
-  width: 420px;
-}
-
-.source-row {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
-}
-
-.source-label {
-  color: var(--text-main);
-  font-size: 21px;
-  font-weight: 900;
-  line-height: 1.18;
-}
-
-.source-label small {
-  display: block;
-  color: var(--text-muted);
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.flag {
-  display: inline-block;
-  margin-right: 6px;
-  font-size: 34px;
-  vertical-align: middle;
-}
-
-.bar-track {
-  height: 54px;
-  overflow: hidden;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 85%,
-      transparent
-    );
-  background:
-    color-mix(
-      in oklab,
-      var(--muted) 82%,
-      var(--card)
-    );
-}
-
-.bar-fill {
   display: flex;
-  height: 100%;
-  min-width: 34px;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  font-weight: 900;
-}
-
-/* =========================
-   Transport
-   ========================= */
-
-.transport-box {
-  position: absolute;
-  top: 350px;
-  left: 745px;
-  z-index: 6;
-  width: 190px;
-  min-height: 170px;
-  padding: 12px 16px;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 88%,
-      transparent
-    );
-  border-radius: 12px;
-  background: var(--card-bg);
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-
-.transport-box h3 {
-  margin: 0 0 8px;
-  color: var(--text-main);
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.transport-row {
-  display: grid;
-  grid-template-columns: 30px 1fr auto;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  color: var(--text-main);
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.transport-row strong {
-  color: var(--value-color);
-}
-
-.transport-icon {
-  font-size: 25px;
-}
-
-/* =========================
-   Industry
-   ========================= */
-
-.industry-box {
-  position: absolute;
-  top: 555px;
-  left: 560px;
-  z-index: 5;
-  width: 390px;
-  min-height: 108px;
-  padding: 14px 18px;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 85%,
-      transparent
-    );
-  border-radius: 12px;
-  background: var(--soft-bg);
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-
-.industry-box h2 {
-  font-size: 30px;
-}
-
-.industry-box p {
-  color: var(--text-muted);
-}
-
-/* =========================
-   Export
-   ========================= */
-
-.export-box {
-  position: absolute;
-  top: 705px;
-  left: 485px;
-  display: flex;
-  width: 350px;
-  min-height: 110px;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--border) 85%,
-      transparent
-    );
-  border-radius: 12px;
-  background: var(--soft-bg);
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-
-.truck {
-  font-size: 58px;
-  filter: grayscale(1);
-}
-
-.export-box h2 {
-  font-size: 32px;
-}
-
-/* =========================
-   Sales table
-   ========================= */
-
-.sales-section {
-  position: absolute;
-  top: 355px;
-  left: 1265px;
-  width: 390px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--card);
 }
 
 .sales-table {
   width: 100%;
+  min-width: 760px;
   border-collapse: collapse;
-  table-layout: fixed;
-  color: var(--text-main);
-  font-size: 19px;
-  box-shadow: var(--shadow);
+  color: var(--foreground);
+  font-size: 0.875rem;
 }
 
-.sales-table th {
-  padding: 10px 8px;
-  border: 1px solid
-    color-mix(
-      in oklab,
-      var(--primary) 75%,
-      var(--border)
-    );
-  background: var(--table-head);
-  color: var(--primary-foreground);
-  font-size: 20px;
-  font-weight: 900;
-  text-align: right;
-}
-
-.sales-table th:first-child {
-  width: 51%;
-  text-align: center;
-}
-
-.sales-table th:nth-child(2) {
-  width: 27%;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.sales-table th:nth-child(3) {
-  width: 22%;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.sales-table td:nth-child(2),
-.sales-table td:nth-child(3) {
-  white-space: nowrap;
-}
-
+.sales-table th,
 .sales-table td {
-  padding: 8px;
-  border: 1px solid var(--border);
-  color: var(--text-main);
-  font-weight: 800;
-  text-align: right;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--border);
+  text-align: left;
   vertical-align: middle;
 }
 
-.sales-table tr:nth-child(odd) td {
-  background: var(--table-row);
+.sales-table th {
+  background: color-mix(in oklab, var(--muted) 45%, var(--card));
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.sales-table tr:nth-child(even) td {
-  background: var(--canvas-bg);
+.sales-table th:nth-child(n + 2),
+.sales-table td:nth-child(n + 2) {
+  text-align: right;
 }
 
-.sales-table td:first-child {
-  text-align: left;
+.sales-table tbody tr {
+  transition: background-color 0.15s ease;
 }
 
-.sale-name {
-  display: grid;
-  grid-template-columns: 42px 1fr;
-  align-items: center;
-  gap: 8px;
+.sales-table tbody tr:hover {
+  background: color-mix(in oklab, var(--muted) 45%, transparent);
 }
 
-.sale-name b {
-  display: block;
-  font-size: 19px;
-  line-height: 1.08;
-}
-
-.sale-name small {
-  display: block;
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.08;
-}
-
-.sale-icon {
-  font-size: 31px;
-  text-align: center;
-}
-
-/* =========================
-   Theme transitions
-   ========================= */
-
-.production-card,
-.stage-wrapper,
-.stage-canvas,
-.production-stage,
-.top-note-card,
-.node,
-.transport-box,
-.industry-box,
-.export-box,
-.bar-track,
-.bar-fill,
-.sales-table th,
-.sales-table td,
-.arrow-up,
-.arrow-down-theme,
-.h-arrow::before,
-.v-arrow {
-  transition:
-    color 200ms ease,
-    background-color 200ms ease,
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-}
-
-/* =========================
-   Responsive
-   ========================= */
-
-@media (max-width: 1200px) {
-  .production-page {
-    padding: 6px;
-  }
-
-  .stage-wrapper {
-    border-radius: 10px;
-  }
-}
 
 @media (max-width: 900px) {
-  .production-page {
-    padding: 4px;
+  .transport-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
+}
 
-  .stage-wrapper {
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-radius: 8px;
-  }
-
-  .stage-canvas {
-    margin: 0;
+@media (max-width: 640px) {
+  .sales-table th,
+  .sales-table td {
+    padding-right: 0.875rem;
+    padding-left: 0.875rem;
   }
 }
 </style>

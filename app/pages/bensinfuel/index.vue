@@ -1,695 +1,954 @@
 <script setup lang="ts">
-import { defineComponent, h } from 'vue'
+import { computed } from 'vue'
 
-type Row = {
-  company: string
-  values: string[]
-  total?: boolean
+type SeriesItem = {
+  name: string
+  average: number
+  current: number
 }
 
-const refineryRows: Row[] = [
-  { company: 'BCP', values: ['5.095', '9.975'] },
-  { company: 'BSRC', values: ['6.656', '12.624'] },
-  { company: 'IRPC', values: ['5.813', '6.130'] },
-  { company: 'SPRC', values: ['6.871', '8.697'] },
-  { company: 'TOP', values: ['8.830', '13.777'] },
-  { company: 'รวม', values: ['33.265', '51.203'], total: true },
+type SalesItem = {
+  name: string
+  average: number | null
+  current: number | null
+}
+
+type KpiItem = {
+  title: string
+  value: number
+  average: number
+  unit: string
+  description: string
+  icon: string
+}
+
+type SellerRow = {
+  rank: number
+  name: string
+  generalAverage: number | null
+  generalCurrent: number | null
+  jobberAverage: number | null
+  jobberCurrent: number | null
+  totalCurrent: number
+}
+
+const refineryData: SeriesItem[] = [
+  { name: 'BCP', average: 5.095, current: 9.975 },
+  { name: 'BSRC', average: 6.656, current: 12.624 },
+  { name: 'IRPC', average: 5.813, current: 6.130 },
+  { name: 'SPRC', average: 6.871, current: 8.697 },
+  { name: 'TOP', average: 8.830, current: 13.777 },
 ]
 
-const mixerRows: Row[] = [
-  { company: 'BCP', values: ['5.289', '3.655'] },
-  { company: 'BSRC', values: ['4.189', '2.232'] },
-  { company: 'IRPC', values: ['2.436', '5.267'] },
-  { company: 'OR', values: ['11.681', '6.168'] },
-  { company: 'SHELL', values: ['1.750', '1.177'] },
-  { company: 'SINOPEC', values: ['0.184', '0.186'] },
-  { company: 'SPRC', values: ['0.697', '0.242'] },
-  { company: 'SFL', values: ['1.848', '0.820'] },
-  { company: 'TOP', values: ['4.323', '2.285'] },
-  { company: 'รวม', values: ['32.396', '22.032'], total: true },
+const producerData: SeriesItem[] = [
+  { name: 'BCP', average: 5.289, current: 3.655 },
+  { name: 'BSRC', average: 4.189, current: 2.232 },
+  { name: 'IRPC', average: 2.436, current: 5.267 },
+  { name: 'OR', average: 11.681, current: 6.168 },
+  { name: 'SHELL', average: 1.750, current: 1.177 },
+  { name: 'SINOPEC', average: 0.184, current: 0.186 },
+  { name: 'SPRC', average: 0.697, current: 0.242 },
+  { name: 'SFL', average: 1.848, current: 0.820 },
+  { name: 'TOP', average: 4.323, current: 2.285 },
 ]
 
-const customerRows: Row[] = [
-  { company: 'PTT', values: ['0.079', '0.055'] },
-  { company: 'SHELL', values: ['2.332', '1.132'] },
-  { company: 'BSRC', values: ['4.025', '2.654'] },
-  { company: 'BCP', values: ['4.769', '3.090'] },
-  { company: 'SUSCO', values: ['0.595', '0.179'] },
-  { company: 'PTG', values: ['0.765', '0.105'] },
-  { company: 'TOP', values: ['2.519', '1.210'] },
-  { company: 'SINOPEC', values: ['0.074', '0.061'] },
-  { company: 'PTTRM', values: ['0.977', '0.947'] },
-  { company: 'IRPC OIL', values: ['0.006', '0.004'] },
-  { company: 'IRPC', values: ['1.582', '0.180'] },
-  { company: 'SFL', values: ['11.949', '0.874'] },
-  { company: 'OR', values: ['2.584', '5.982'] },
-  { company: 'PC SIAM', values: ['0.071', '-'] },
-  { company: 'รวม', values: ['32.327', '16.472'], total: true },
+const generalSales: SalesItem[] = [
+  { name: 'PTT', average: 0.079, current: 0.055 },
+  { name: 'SHELL', average: 2.332, current: 1.132 },
+  { name: 'BSRC', average: 4.025, current: 2.654 },
+  { name: 'BCP', average: 4.769, current: 3.090 },
+  { name: 'SUSCO', average: 0.595, current: 0.179 },
+  { name: 'PTG', average: 0.765, current: 0.105 },
+  { name: 'TOP', average: 2.519, current: 1.210 },
+  { name: 'SINOPEC', average: 0.074, current: 0.061 },
+  { name: 'PTTRM', average: 0.977, current: 0.947 },
+  { name: 'IRPC OIL', average: 0.006, current: 0.004 },
+  { name: 'IRPC', average: 1.582, current: 0.180 },
+  { name: 'SFL', average: 11.949, current: 0.874 },
+  { name: 'OR', average: 2.584, current: 5.982 },
+  { name: 'PC SIAM', average: 0.071, current: null },
 ]
 
-const jobberRows: Row[] = [
-  { company: 'SHELL', values: ['0.306', '-'] },
-  { company: 'PTTGC', values: ['-', '-'] },
-  { company: 'BSRC', values: ['0.080', '-'] },
-  { company: 'BCP', values: ['0.119', '0.055'] },
-  { company: 'SUSCO', values: ['0.002', '-'] },
-  { company: 'PTG', values: ['0.024', '-'] },
-  { company: 'SINOPEC', values: ['-', '-'] },
-  { company: 'TOP', values: ['0.057', '0.100'] },
-  { company: 'SPRC', values: ['-', '-'] },
-  { company: 'OR', values: ['0.366', '0.028'] },
-  { company: 'SFL', values: ['0.514', '0.162'] },
-  { company: 'IRPC', values: ['0.568', '0.505'] },
-  { company: 'PTT', values: ['-', '-'] },
-  { company: 'PC SIAM', values: ['0.009', '-'] },
-  { company: 'รวม', values: ['2.044', '0.850'], total: true },
+const jobberSales: SalesItem[] = [
+  { name: 'SHELL', average: 0.306, current: null },
+  { name: 'PTTGC', average: null, current: null },
+  { name: 'BSRC', average: 0.080, current: null },
+  { name: 'BCP', average: 0.119, current: 0.055 },
+  { name: 'SUSCO', average: 0.002, current: null },
+  { name: 'PTG', average: 0.024, current: null },
+  { name: 'SINOPEC', average: null, current: null },
+  { name: 'TOP', average: 0.057, current: 0.100 },
+  { name: 'SPRC', average: null, current: null },
+  { name: 'OR', average: 0.366, current: 0.028 },
+  { name: 'SFL', average: 0.514, current: 0.162 },
+  { name: 'IRPC', average: 0.568, current: 0.505 },
+  { name: 'PTT', average: null, current: null },
+  { name: 'PC SIAM', average: 0.009, current: null },
 ]
 
-const DataTable = defineComponent({
-  name: 'GasolineDistributionDataTable',
-  props: {
-    columns: {
-      type: Array as () => string[],
-      required: true,
-    },
-    rows: {
-      type: Array as () => Row[],
-      required: true,
-    },
-    variant: {
-      type: String,
-      default: 'gray',
-    },
+const kpis: KpiItem[] = [
+  {
+    title: 'โรงกลั่นผลิตเบนซินพื้นฐาน',
+    value: 51.203,
+    average: 33.265,
+    unit: 'ล้านลิตร',
+    description: '',
+    icon: 'i-lucide-factory',
   },
-  setup(props) {
-    return () => h(
-      'div',
-      { class: 'gasoline-table-shell' },
-      [
-        h(
-          'table',
-          {
-            class: [
-              'gasoline-data-table',
-              `table-${props.variant}`,
-            ],
-          },
-          [
-            h(
-              'thead',
-              h(
-                'tr',
-                props.columns.map(column => h('th', { title: column }, column)),
-              ),
-            ),
-            h(
-              'tbody',
-              props.rows.map(row => h(
-                'tr',
-                { class: row.total ? 'total-row' : '' },
-                [
-                  h('td', row.company),
-                  ...row.values.map(value => h('td', { class: 'tabular-nums' }, value)),
-                ],
-              )),
-            ),
-          ],
-        ),
-      ],
-    )
+  {
+    title: 'ผู้ค้าผลิตเบนซินและแก๊สโซฮอล์',
+    value: 22.032,
+    average: 32.396,
+    unit: 'ล้านลิตร',
+    description: '',
+    icon: 'i-lucide-flask-conical',
   },
+  {
+    title: 'ผู้ค้าจำหน่ายลูกค้าทั่วไป',
+    value: 16.472,
+    average: 32.327,
+    unit: 'ล้านลิตร',
+    description: '',
+    icon: 'i-lucide-building-2',
+  },
+  {
+    title: 'ผู้ค้าจำหน่าย ม.10 Jobber',
+    value: 0.850,
+    average: 2.044,
+    unit: 'ล้านลิตร',
+    description: '',
+    icon: 'i-lucide-briefcase-business',
+  },
+  {
+    title: 'รวมจำหน่าย',
+    value: 17.322,
+    average: 34.371,
+    unit: 'ล้านลิตร',
+    description: 'ลูกค้าทั่วไป + ม.10',
+    icon: 'i-lucide-chart-no-axes-combined',
+  },
+]
+
+const refineryMax = computed(() =>
+  Math.max(...refineryData.flatMap(item => [item.average, item.current])),
+)
+
+const producerMax = computed(() =>
+  Math.max(...producerData.flatMap(item => [item.average, item.current])),
+)
+
+const generalSalesTotal = computed(() =>
+  generalSales.reduce((sum, item) => sum + (item.current ?? 0), 0),
+)
+
+const jobberSalesTotal = computed(() =>
+  jobberSales.reduce((sum, item) => sum + (item.current ?? 0), 0),
+)
+
+const grandSalesTotal = computed(() =>
+  generalSalesTotal.value + jobberSalesTotal.value,
+)
+
+const salesShare = computed(() => ({
+  general:
+    grandSalesTotal.value > 0
+      ? (generalSalesTotal.value / grandSalesTotal.value) * 100
+      : 0,
+  jobber:
+    grandSalesTotal.value > 0
+      ? (jobberSalesTotal.value / grandSalesTotal.value) * 100
+      : 0,
+}))
+
+const salesDonut = computed(() =>
+  `conic-gradient(
+    var(--primary) 0 ${salesShare.value.general}%,
+    color-mix(in oklab, var(--primary) 45%, var(--muted))
+      ${salesShare.value.general}% 100%
+  )`,
+)
+
+const sellerRows = computed<SellerRow[]>(() => {
+  const companyNames = new Set([
+    ...generalSales.map(item => item.name),
+    ...jobberSales.map(item => item.name),
+  ])
+
+  return [...companyNames]
+    .map((name) => {
+      const general = generalSales.find(item => item.name === name)
+      const jobber = jobberSales.find(item => item.name === name)
+      const generalCurrent = general?.current ?? null
+      const jobberCurrent = jobber?.current ?? null
+
+      return {
+        name,
+        generalAverage: general?.average ?? null,
+        generalCurrent,
+        jobberAverage: jobber?.average ?? null,
+        jobberCurrent,
+        totalCurrent: (generalCurrent ?? 0) + (jobberCurrent ?? 0),
+      }
+    })
+    .sort((a, b) => b.totalCurrent - a.totalCurrent)
+    .map((item, index) => ({
+      ...item,
+      rank: index + 1,
+    }))
 })
+
+function formatNumber(value: number) {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  })
+}
+
+function formatSalesValue(value: number | null) {
+  return value === null ? '-' : formatNumber(value)
+}
+
+function verticalBarHeight(value: number, max: number) {
+  if (value <= 0 || max <= 0)
+    return '0%'
+
+  return `${Math.max((value / max) * 100, 1.5)}%`
+}
 </script>
 
 <template>
-  <div class="gasoline-distribution-page">
-    <div class="gasoline-page-toolbar">
+  <div class="gasoline-chart-dashboard w-full min-w-0 space-y-3">
+    <!-- Header -->
+    <header class="flex flex-wrap items-center justify-between gap-2">
       <div class="min-w-0">
         <h2 class="text-2xl font-bold tracking-tight">
-          โครงสร้างการผลิตและจำหน่ายเบนซิน กลุ่มแก๊สโซฮอล์
+          โครงสร้างการผลิตและจำหน่ายเบนซินและแก๊สโซฮอล์
         </h2>
 
-        <!-- <p class="text-sm text-muted-foreground">
+        <p class="text-sm text-muted-foreground">
           ข้อมูล ณ วันที่ 19 เมษายน 2569 · หน่วย: ล้านลิตร
-        </p> -->
+        </p>
       </div>
 
       <div class="shrink-0">
         <BaseDateRangePicker />
       </div>
-    </div>
+    </header>
 
-    <Card class="gasoline-distribution-card">
-      <CardContent class="p-3 sm:p-4">
-        <div class="gasoline-distribution-canvas">
-          <main class="gasoline-diagram">
-            <section class="gasoline-diagram-block gasoline-refinery-block">
-              <div class="gasoline-block-title gasoline-block-title-tall">
-                <Icon name="i-lucide-factory" class="gasoline-block-icon" />
+    <!-- KPI -->
+    <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <Card
+        v-for="item in kpis"
+        :key="item.title"
+        class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm"
+      >
+        <CardContent class="p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-muted-foreground">
+                {{ item.title }}
+              </p>
 
-                <span>
-                  โรงกลั่นผลิตเบนซินพื้นฐาน
-                  <small>
-                    ชนิดที่ 1 และ 2<br>
-                    และน้ำมันเบนซินออกเทน 91<br>
-                    ออกเทน 92 และ 95
-                  </small>
+              <div class="mt-1 flex flex-wrap items-baseline gap-x-2">
+                <span class="text-2xl font-bold tracking-tight tabular-nums">
+                  {{ formatNumber(item.value) }}
+                </span>
+
+                <span class="text-xs text-muted-foreground">
+                  {{ item.unit }}
                 </span>
               </div>
 
-              <DataTable
-                variant="gray"
-                :columns="[
-                  'บริษัท',
-                  'สถิติเฉลี่ย ม.ค.',
-                  'กลั่น/ผลิต 19 เม.ย.',
-                ]"
-                :rows="refineryRows"
-              />
-            </section>
+              <p class="mt-2 text-xs text-muted-foreground">
+                เฉลี่ย ม.ค. {{ formatNumber(item.average) }}
+                {{ item.description }}
+              </p>
+            </div>
 
-            <div class="gasoline-flow-arrow gasoline-arrow-1" />
+            <div
+              class="
+                flex size-12 shrink-0 items-center justify-center rounded-2xl
+                bg-primary/10 text-primary
+              "
+            >
+              <Icon :name="item.icon" size="27" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
 
-            <section class="gasoline-diagram-block gasoline-mixer-block">
-              <div class="gasoline-block-title gasoline-block-title-tall">
-                <Icon name="i-lucide-database" class="gasoline-block-icon" />
+    <!-- Vertical comparison charts -->
+    <section
+      class="
+        grid min-w-0 gap-3
+        xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]
+      "
+    >
+      <!-- Refinery -->
+      <Card class="min-w-0 gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+        <CardHeader class="px-4 pb-3 pt-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle class="text-lg">
+                โรงกลั่นผลิตเบนซินพื้นฐาน
+              </CardTitle>
 
-                <span>
-                  ผู้ค้าผลิตเบนซิน แก๊สโซฮอล์
-                  <small>(ผสมเอทานอล)</small>
+              <CardDescription>
+                ชนิดที่ 1 และ 2 และน้ำมันเบนซินออกเทน 91 ออกเทน 92 และ 95
+              </CardDescription>
+            </div>
+
+            <div class="chart-legend">
+              <span>
+                <i class="legend-dot legend-average" />
+                เฉลี่ย ม.ค.
+              </span>
+
+              <span>
+                <i class="legend-dot legend-current" />
+                19 เม.ย.
+              </span>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent class="px-4 pb-4 pt-0">
+          <div class="vertical-chart-scroll">
+            <div class="vertical-chart refinery-vertical-chart">
+              <div
+                v-for="item in refineryData"
+                :key="item.name"
+                class="vertical-group"
+              >
+                <div class="vertical-values">
+                  <span>{{ formatNumber(item.average) }}</span>
+                  <strong>{{ formatNumber(item.current) }}</strong>
+                </div>
+
+                <div class="vertical-bars">
+                  <div class="vertical-track">
+                    <div
+                      class="vertical-bar vertical-bar-average"
+                      :style="{
+                        height: verticalBarHeight(item.average, refineryMax),
+                      }"
+                      :title="`เฉลี่ย ม.ค. ${formatNumber(item.average)}`"
+                    />
+                  </div>
+
+                  <div class="vertical-track">
+                    <div
+                      class="vertical-bar vertical-bar-current"
+                      :style="{
+                        height: verticalBarHeight(item.current, refineryMax),
+                      }"
+                      :title="`19 เม.ย. ${formatNumber(item.current)}`"
+                    />
+                  </div>
+                </div>
+
+                <div class="vertical-label">
+                  {{ item.name }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Producer -->
+      <Card class="min-w-0 gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+        <CardHeader class="px-4 pb-3 pt-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle class="text-lg">
+                ผู้ค้าผลิตเบนซินและแก๊สโซฮอล์
+              </CardTitle>
+
+              <CardDescription>
+                (ผสมเอทานอล)
+              </CardDescription>
+            </div>
+
+            <div class="chart-legend">
+              <span>
+                <i class="legend-dot legend-average" />
+                เฉลี่ย ม.ค.
+              </span>
+
+              <span>
+                <i class="legend-dot legend-current" />
+                ผสมเสร็จ
+              </span>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent class="px-4 pb-4 pt-0">
+          <div class="vertical-chart-scroll">
+            <div class="vertical-chart producer-vertical-chart">
+              <div
+                v-for="item in producerData"
+                :key="item.name"
+                class="vertical-group"
+              >
+                <div class="vertical-values">
+                  <span>{{ formatNumber(item.average) }}</span>
+                  <strong>{{ formatNumber(item.current) }}</strong>
+                </div>
+
+                <div class="vertical-bars">
+                  <div class="vertical-track">
+                    <div
+                      class="vertical-bar vertical-bar-average"
+                      :style="{
+                        height: verticalBarHeight(item.average, producerMax),
+                      }"
+                      :title="`เฉลี่ย ม.ค. ${formatNumber(item.average)}`"
+                    />
+                  </div>
+
+                  <div class="vertical-track">
+                    <div
+                      class="vertical-bar vertical-bar-current"
+                      :style="{
+                        height: verticalBarHeight(item.current, producerMax),
+                      }"
+                      :title="`ผสมเสร็จ ${formatNumber(item.current)}`"
+                    />
+                  </div>
+                </div>
+
+                <div class="vertical-label">
+                  {{ item.name }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
+
+    <!-- Sales -->
+    <section
+      class="
+        grid min-w-0 gap-3
+        xl:grid-cols-[minmax(300px,0.65fr)_minmax(0,1.35fr)]
+      "
+    >
+      <!-- Sales summary -->
+      <Card class="gap-0 rounded-2xl border-border/80 py-0 shadow-sm">
+        <CardHeader class="px-4 pb-3 pt-4">
+          <CardTitle class="text-lg">
+            สัดส่วนการจำหน่าย
+          </CardTitle>
+
+          <CardDescription>
+            ลูกค้าทั่วไปและจำหน่าย ม.10 Jobber
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent class="px-4 pb-4 pt-0">
+          <div class="sales-summary">
+            <div
+              class="sales-donut"
+              :style="{ background: salesDonut }"
+            >
+              <div class="sales-donut-hole">
+                <span class="text-sm text-muted-foreground">
+                  รวมจำหน่าย
+                </span>
+
+                <strong class="text-3xl tabular-nums">
+                  {{ formatNumber(grandSalesTotal) }}
+                </strong>
+
+                <span class="text-sm text-muted-foreground">
+                  ล้านลิตร
                 </span>
               </div>
+            </div>
 
-              <DataTable
-                variant="blue"
-                :columns="[
-                  'บริษัท',
-                  'สถิติเฉลี่ย ม.ค.',
-                  'ผสมเสร็จ 19 เม.ย.',
-                ]"
-                :rows="mixerRows"
-              />
-            </section>
-
-            <div class="gasoline-flow-arrow gasoline-arrow-2" />
-
-            <section class="gasoline-sales-wrapper">
-              <div class="gasoline-sales-title">
-                <div>
-                  <h3>ผู้ค้าจำหน่ายเบนซิน กลุ่มแก๊สโซฮอล์</h3>
-                  <p>(ลูกค้าทั่วไป)</p>
+            <div class="sales-share-grid">
+              <div class="sales-share-card">
+                <div class="sales-share-icon bg-primary text-primary-foreground">
+                  <Icon name="i-lucide-building-2" size="22" />
                 </div>
 
-                <div class="gasoline-plus">
-                  +
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium">
+                    ลูกค้าทั่วไป
+                  </p>
+
+                  <p class="text-xl font-bold tabular-nums text-primary">
+                    {{ formatNumber(generalSalesTotal) }}
+                  </p>
                 </div>
 
-                <div>
-                  <h3>ผู้ค้าจำหน่ายเบนซิน กลุ่มแก๊สโซฮอล์</h3>
-                  <p>(จำหน่าย ม.10 Jobber)</p>
-                </div>
-              </div>
-
-              <div class="gasoline-sales-tables">
-                <DataTable
-                  variant="blue"
-                  :columns="[
-                    'บริษัท',
-                    'สถิติเฉลี่ย ม.ค.',
-                    'การจำหน่าย 19 เม.ย.',
-                  ]"
-                  :rows="customerRows"
-                />
-
-                <DataTable
-                  variant="blue"
-                  :columns="[
-                    'บริษัท',
-                    'สถิติเฉลี่ย ม.ค.',
-                    'จำหน่ายใช้ ม.10 19 เม.ย.',
-                  ]"
-                  :rows="jobberRows"
-                />
-              </div>
-
-              <div class="gasoline-summary-box">
-                <Icon name="i-lucide-equal" class="size-6 shrink-0" />
-
-                <strong>
-                  รวมจำหน่ายลูกค้าทั่วไป + ม.10 = 17.322
+                <strong class="text-base tabular-nums">
+                  {{ salesShare.general.toFixed(1) }}%
                 </strong>
               </div>
-            </section>
-          </main>
 
-          <footer class="gasoline-page-footer">
-            <div>ข้อมูล ณ วันที่ 19 เมษายน 2569</div>
-            <div>หน่วย: ล้านลิตร</div>
-          </footer>
-        </div>
-      </CardContent>
-    </Card>
+              <div class="sales-share-card">
+                <div class="sales-share-icon bg-muted text-foreground">
+                  <Icon name="i-lucide-briefcase-business" size="22" />
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium">
+                    ม.10 Jobber
+                  </p>
+
+                  <p class="text-xl font-bold tabular-nums">
+                    {{ formatNumber(jobberSalesTotal) }}
+                  </p>
+                </div>
+
+                <strong class="text-base tabular-nums">
+                  {{ salesShare.jobber.toFixed(1) }}%
+                </strong>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Seller table -->
+      <Card class="min-w-0 gap-0 overflow-hidden rounded-2xl border-border/80 py-0 shadow-sm">
+        <CardHeader class="px-4 pb-3 pt-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle class="text-lg">
+                ผู้ค้าจำหน่ายเบนซิน กลุ่มแก๊สโซฮอล์
+              </CardTitle>
+
+              <CardDescription>
+                ลูกค้าทั่วไปและจำหน่าย ม.10 Jobber
+              </CardDescription>
+            </div>
+
+            <Badge variant="secondary">
+              {{ sellerRows.length }} บริษัท
+            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent class="p-0">
+          <div class="seller-table-scroll">
+            <table class="seller-table">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="seller-rank-column">
+                    อันดับ
+                  </th>
+                  <th rowspan="2" class="seller-name-column">
+                    บริษัท
+                  </th>
+                  <th colspan="2" class="seller-group-header seller-group-general">
+                    ลูกค้าทั่วไป
+                  </th>
+                  <th colspan="2" class="seller-group-header seller-group-jobber">
+                    ม.10 Jobber
+                  </th>
+                </tr>
+                <tr>
+                  <th>สถิติเฉลี่ย ม.ค.</th>
+                  <th>การจำหน่าย 19 เม.ย.</th>
+                  <th>สถิติเฉลี่ย ม.ค.</th>
+                  <th>จำหน่ายใช้ ม.10 19 เม.ย.</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr
+                  v-for="row in sellerRows"
+                  :key="row.name"
+                >
+                  <td class="seller-rank-value tabular-nums">
+                    {{ row.rank }}
+                  </td>
+
+                  <td class="seller-company-name">
+                    {{ row.name }}
+                  </td>
+
+                  <td class="seller-number-cell tabular-nums">
+                    {{ formatSalesValue(row.generalAverage) }}
+                  </td>
+
+                  <td class="seller-number-cell seller-current-value tabular-nums">
+                    {{ formatSalesValue(row.generalCurrent) }}
+                  </td>
+
+                  <td class="seller-number-cell tabular-nums">
+                    {{ formatSalesValue(row.jobberAverage) }}
+                  </td>
+
+                  <td class="seller-number-cell seller-current-value tabular-nums">
+                    {{ formatSalesValue(row.jobberCurrent) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </section>
   </div>
 </template>
 
-<style>
-.gasoline-distribution-page {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1rem;
-  overflow-x: hidden;
+<style scoped>
+.gasoline-chart-dashboard :deep([data-slot='card-header']) {
+  gap: 0.25rem;
 }
 
-.gasoline-distribution-page .gasoline-page-toolbar {
+.chart-legend {
   display: flex;
-  min-width: 0;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.55rem 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+}
+
+.chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 9999px;
+}
+
+.legend-average {
+  background:
+    color-mix(
+      in oklab,
+      var(--muted-foreground) 65%,
+      var(--card)
+    );
+}
+
+.legend-current {
+  background: var(--primary);
+}
+
+/* Vertical charts */
+.vertical-chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.vertical-chart {
+  display: grid;
+  min-height: 270px;
+  align-items: end;
+  gap: 0.9rem;
+  padding: 0.5rem 0.25rem 0;
+  background:
+    repeating-linear-gradient(
+      to top,
+      color-mix(in oklab, var(--border) 70%, transparent) 0,
+      color-mix(in oklab, var(--border) 70%, transparent) 1px,
+      transparent 1px,
+      transparent 48px
+    );
+}
+
+.refinery-vertical-chart {
+  min-width: 440px;
+  grid-template-columns: repeat(5, minmax(68px, 1fr));
+}
+
+.producer-vertical-chart {
+  min-width: 760px;
+  grid-template-columns: repeat(9, minmax(72px, 1fr));
+}
+
+.vertical-group {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 32px 190px 34px;
+  gap: 0.35rem;
+  align-items: end;
+}
+
+.vertical-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem;
+  text-align: center;
+  font-size: 0.66rem;
+}
+
+.vertical-values span {
+  color: var(--muted-foreground);
+}
+
+.vertical-values strong {
+  color: var(--foreground);
+}
+
+.vertical-bars {
+  display: flex;
+  height: 190px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.vertical-track {
+  display: flex;
+  width: min(30px, 42%);
+  height: 100%;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 0.45rem 0.45rem 0 0;
+  background:
+    color-mix(
+      in oklab,
+      var(--muted) 70%,
+      var(--card)
+    );
+}
+
+.vertical-bar {
+  width: 100%;
+  min-height: 0;
+  border-radius: 0.4rem 0.4rem 0 0;
+  transition: height 0.2s ease;
+}
+
+.vertical-bar-average {
+  background:
+    color-mix(
+      in oklab,
+      var(--muted-foreground) 58%,
+      var(--card)
+    );
+}
+
+.vertical-bar-current {
+  background: var(--primary);
+}
+
+.vertical-label {
+  overflow: hidden;
+  color: var(--foreground);
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Donut */
+.sales-summary {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sales-donut {
+  position: relative;
+  width: min(100%, 280px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 9999px;
+}
+
+.sales-donut-hole {
+  position: absolute;
+  inset: 26%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: inherit;
+  background: var(--card);
+  text-align: center;
+}
+
+.sales-share-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
-.gasoline-distribution-page .gasoline-distribution-card {
-  min-width: 0;
-  overflow: hidden;
-  border-color: color-mix(in oklab, var(--border) 85%, transparent);
-  background: var(--card);
-  color: var(--card-foreground);
-}
-
-.gasoline-distribution-page .gasoline-distribution-canvas {
-  container-type: inline-size;
-  width: 100%;
-  min-width: 0;
-  font-family: Tahoma, Arial, sans-serif;
-
-  --gasoline-border: var(--border);
-  --gasoline-arrow: color-mix(in oklab, var(--foreground) 76%, transparent);
-  --gasoline-gray-head: color-mix(in oklab, var(--muted-foreground) 58%, var(--card));
-  --gasoline-gray-body: color-mix(in oklab, var(--muted) 65%, var(--card));
-  --gasoline-blue-head: color-mix(in oklab, var(--primary) 42%, var(--card));
-  --gasoline-blue-body: color-mix(in oklab, var(--primary) 9%, var(--card));
-  --gasoline-purple-color: var(--chart-4, #a855f7);
-  --gasoline-purple-head: color-mix(in oklab, var(--gasoline-purple-color) 48%, var(--card));
-  --gasoline-purple-body: color-mix(in oklab, var(--gasoline-purple-color) 10%, var(--card));
-  --gasoline-total-blue: color-mix(in oklab, var(--primary) 35%, var(--card));
-  --gasoline-total-purple: color-mix(in oklab, var(--gasoline-purple-color) 35%, var(--card));
-}
-
-.gasoline-distribution-page .gasoline-diagram {
-  display: grid;
-  grid-template-columns:
-    minmax(0, 0.88fr)
-    clamp(30px, 3vw, 54px)
-    minmax(0, 0.95fr)
-    clamp(30px, 3vw, 54px)
-    minmax(0, 1.8fr);
-  grid-template-areas: "refinery arrow1 mixer arrow2 sales";
-  align-items: start;
-  gap: clamp(0.35rem, 0.75vw, 0.8rem);
-  width: 100%;
-  min-width: 0;
-}
-
-.gasoline-distribution-page .gasoline-diagram-block,
-.gasoline-distribution-page .gasoline-sales-wrapper {
-  min-width: 0;
-}
-
-.gasoline-distribution-page .gasoline-refinery-block {
-  grid-area: refinery;
-}
-
-.gasoline-distribution-page .gasoline-mixer-block {
-  grid-area: mixer;
-}
-
-.gasoline-distribution-page .gasoline-arrow-1 {
-  grid-area: arrow1;
-}
-
-.gasoline-distribution-page .gasoline-arrow-2 {
-  grid-area: arrow2;
-}
-
-.gasoline-distribution-page .gasoline-sales-wrapper {
-  grid-area: sales;
-}
-
-.gasoline-distribution-page .gasoline-block-title {
+.sales-share-card {
   display: flex;
-  min-height: clamp(60px, 6vw, 96px);
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+}
+
+.sales-share-icon {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.35rem, 0.7vw, 0.7rem);
-  margin-bottom: clamp(0.4rem, 0.7vw, 0.75rem);
-  color: var(--foreground);
-  font-size: clamp(13px, 1.18vw, 21px);
-  font-weight: 900;
-  line-height: 1.12;
-  text-align: center;
+  border-radius: 0.75rem;
 }
 
-.gasoline-distribution-page .gasoline-block-title > span {
-  display: block;
-  min-width: 0;
-}
-
-.gasoline-distribution-page .gasoline-block-title small {
-  display: block;
-  margin-top: 0.18rem;
-  color: var(--muted-foreground);
-  font-size: 0.76em;
-  line-height: 1.15;
-}
-
-.gasoline-distribution-page .gasoline-block-icon {
-  width: clamp(32px, 3.4vw, 50px);
-  height: clamp(32px, 3.4vw, 50px);
-  flex: 0 0 auto;
-  color: var(--primary);
-}
-
-.gasoline-distribution-page .gasoline-flow-arrow {
-  --arrow-line-height: clamp(5px, 0.45vw, 8px);
-  --arrow-head-width: clamp(16px, 1.5vw, 26px);
-  --arrow-head-height: clamp(16px, 1.4vw, 24px);
-
-  position: relative;
+/* Seller table */
+.seller-table-scroll {
   width: 100%;
-  height: var(--arrow-head-height);
-  margin-top: clamp(120px, 13vw, 185px);
+  max-height: 322px;
+  overflow: auto;
+  scrollbar-gutter: stable;
 }
 
-.gasoline-distribution-page .gasoline-flow-arrow::before {
-  position: absolute;
-  top: 50%;
-  right: var(--arrow-head-width);
-  left: 0;
-  height: var(--arrow-line-height);
-  background: var(--gasoline-arrow);
-  content: "";
-  transform: translateY(-50%);
-}
-
-.gasoline-distribution-page .gasoline-flow-arrow::after {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 0;
-  height: 0;
-  border-top: calc(var(--arrow-head-height) / 2) solid transparent;
-  border-bottom: calc(var(--arrow-head-height) / 2) solid transparent;
-  border-left: var(--arrow-head-width) solid var(--gasoline-arrow);
-  content: "";
-  transform: translateY(-50%);
-}
-
-.gasoline-distribution-page .gasoline-sales-wrapper {
-  padding: clamp(0.5rem, 0.8vw, 0.8rem);
-  border: 1px dashed color-mix(in oklab, var(--primary) 68%, transparent);
-  border-radius: var(--radius);
-  background: color-mix(in oklab, var(--primary) 2.5%, var(--card));
-}
-
-.gasoline-distribution-page .gasoline-sales-title {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(0.25rem, 0.5vw, 0.5rem);
-  margin-bottom: clamp(0.4rem, 0.7vw, 0.75rem);
-  text-align: center;
-}
-
-.gasoline-distribution-page .gasoline-sales-title h3 {
-  margin: 0;
-  color: var(--foreground);
-  font-size: clamp(12px, 1.05vw, 18px);
-  font-weight: 900;
-  line-height: 1.15;
-}
-
-.gasoline-distribution-page .gasoline-sales-title p {
-  margin: 0.15rem 0 0;
-  color: var(--muted-foreground);
-  font-size: clamp(10px, 0.82vw, 14px);
-  font-weight: 700;
-  line-height: 1.15;
-}
-
-.gasoline-distribution-page .gasoline-plus {
-  color: var(--primary);
-  font-size: clamp(28px, 3vw, 48px);
-  font-weight: 900;
-  line-height: 1;
-}
-
-.gasoline-distribution-page .gasoline-sales-tables {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
-  gap: clamp(0.4rem, 0.8vw, 0.8rem);
-  min-width: 0;
-}
-
-.gasoline-distribution-page .gasoline-table-shell {
+.seller-table {
   width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--gasoline-border);
-  border-radius: calc(var(--radius) * 0.75);
-}
-
-.gasoline-distribution-page .gasoline-data-table {
-  width: 100%;
-  min-width: 0;
-  border-collapse: collapse;
-  table-layout: fixed;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
   color: var(--foreground);
-  font-size: clamp(9px, 0.72vw, 13px);
+  font-size: 0.8rem;
 }
 
-.gasoline-distribution-page .gasoline-data-table th,
-.gasoline-distribution-page .gasoline-data-table td {
-  height: clamp(27px, 2.1vw, 33px);
-  padding: clamp(0.16rem, 0.26vw, 0.28rem) clamp(0.18rem, 0.32vw, 0.36rem);
-  border-right: 1px solid var(--gasoline-border);
-  border-bottom: 1px solid var(--gasoline-border);
-  overflow-wrap: anywhere;
+.seller-table th,
+.seller-table td {
+  height: 46px;
+  padding: 0.6rem 0.75rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   text-align: center;
-  white-space: normal;
-  font-weight: 700;
-  line-height: 1.08;
+  vertical-align: middle;
 }
 
-.gasoline-distribution-page .gasoline-data-table th:last-child,
-.gasoline-distribution-page .gasoline-data-table td:last-child {
+.seller-table th:last-child,
+.seller-table td:last-child {
   border-right: 0;
 }
 
-.gasoline-distribution-page .gasoline-data-table tbody tr:last-child td {
+.seller-table thead th {
+  position: sticky;
+  z-index: 3;
+  background:
+    color-mix(
+      in oklab,
+      var(--muted) 42%,
+      var(--card)
+    );
+  color: var(--foreground);
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.seller-table thead tr:first-child th {
+  top: 0;
+}
+
+.seller-table thead tr:nth-child(2) th {
+  top: 42px;
+}
+
+.seller-table thead tr:first-child th {
+  height: 42px;
+  font-size: 0.88rem;
+}
+
+.seller-table tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.gasoline-distribution-page .gasoline-data-table th {
-  color: var(--foreground);
-  font-weight: 900;
+.seller-table tbody tr:hover td {
+  background:
+    color-mix(
+      in oklab,
+      var(--muted) 35%,
+      transparent
+    );
 }
 
-.gasoline-distribution-page .gasoline-data-table td:first-child {
-  font-weight: 900;
+.seller-rank-column {
+  width: 76px;
 }
 
-.gasoline-distribution-page .table-gray th {
-  background: var(--gasoline-gray-head);
-  color: var(--foreground);
+.seller-name-column {
+  width: 120px;
 }
 
-.gasoline-distribution-page .table-gray td {
-  background: var(--gasoline-gray-body);
+.seller-group-header {
+  letter-spacing: 0.01em;
 }
 
-.gasoline-distribution-page .table-blue th {
-  background: var(--gasoline-blue-head);
-  color: var(--foreground);
+.seller-group-general {
+  background:
+    color-mix(
+      in oklab,
+      var(--primary) 10%,
+      var(--card)
+    ) !important;
 }
 
-.gasoline-distribution-page .table-blue td {
-  background: var(--gasoline-blue-body);
+.seller-group-jobber {
+  background:
+    color-mix(
+      in oklab,
+      var(--primary) 6%,
+      var(--muted)
+    ) !important;
 }
 
-.gasoline-distribution-page .table-purple th {
-  background: var(--gasoline-purple-head);
-  color: var(--foreground);
-}
-
-.gasoline-distribution-page .table-purple td {
-  background: var(--gasoline-purple-body);
-}
-
-.gasoline-distribution-page .table-gray .total-row td {
-  background: var(--card) !important;
-}
-
-.gasoline-distribution-page .table-blue .total-row td {
-  background: var(--gasoline-total-blue) !important;
-  color: var(--foreground);
-  font-weight: 900;
-}
-
-.gasoline-distribution-page .table-purple .total-row td {
-  background: var(--gasoline-total-purple) !important;
-  color: var(--foreground);
-  font-weight: 900;
-}
-
-.gasoline-distribution-page .gasoline-summary-box {
-  display: flex;
-  width: fit-content;
-  max-width: 100%;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: clamp(0.5rem, 0.8vw, 0.9rem) auto 0;
-  padding: 0.5rem 0.8rem;
-  border: 1px solid color-mix(in oklab, var(--primary) 20%, var(--border));
-  border-radius: calc(var(--radius) * 0.75);
-  background: color-mix(in oklab, var(--primary) 8%, var(--card));
-  color: var(--primary);
-  font-size: clamp(12px, 0.95vw, 17px);
-  line-height: 1.2;
-  text-align: center;
-}
-
-.gasoline-distribution-page .gasoline-page-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+.seller-rank-value {
   color: var(--muted-foreground);
-  font-size: clamp(10px, 0.75vw, 13px);
+  font-weight: 600;
+}
+
+.seller-company-name {
+  text-align: left !important;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.seller-number-cell {
+  min-width: 150px;
+  color: var(--muted-foreground);
+}
+
+.seller-current-value {
+  color: var(--foreground);
   font-weight: 700;
 }
 
-.gasoline-distribution-page .gasoline-page-footer div {
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) * 0.65);
-  background: var(--muted);
-}
-
-@container (max-width: 1180px) {
-  .gasoline-distribution-page .gasoline-diagram {
-    grid-template-columns: minmax(0, 1fr) 38px minmax(0, 1fr);
-    grid-template-areas:
-      "refinery arrow1 mixer"
-      "sales sales sales";
+@media (max-width: 768px) {
+  .vertical-chart {
+    min-height: 245px;
   }
 
-  .gasoline-distribution-page .gasoline-arrow-2 {
-    display: none;
+  .vertical-group {
+    grid-template-rows: 30px 165px 32px;
   }
 
-  .gasoline-distribution-page .gasoline-sales-wrapper {
-    margin-top: 0.75rem;
+  .vertical-bars {
+    height: 165px;
   }
 
-  .gasoline-distribution-page .gasoline-block-title {
-    font-size: clamp(14px, 2vw, 20px);
-  }
-
-  .gasoline-distribution-page .gasoline-data-table {
-    font-size: clamp(10px, 1.18vw, 13px);
-  }
-
-  .gasoline-distribution-page .gasoline-data-table th,
-  .gasoline-distribution-page .gasoline-data-table td {
-    height: 31px;
-    padding: 0.28rem 0.36rem;
-  }
-
-  .gasoline-distribution-page .gasoline-sales-title h3 {
-    font-size: clamp(13px, 1.7vw, 18px);
-  }
-
-  .gasoline-distribution-page .gasoline-sales-title p {
-    font-size: clamp(10px, 1.25vw, 13px);
-  }
-}
-
-@container (max-width: 720px) {
-  .gasoline-distribution-page .gasoline-diagram {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "refinery"
-      "arrow1"
-      "mixer"
-      "arrow2"
-      "sales";
-  }
-
-  .gasoline-distribution-page .gasoline-arrow-2 {
-    display: block;
-  }
-
-  .gasoline-distribution-page .gasoline-flow-arrow {
-    width: 24px;
-    height: 42px;
-    margin: 0.35rem auto;
-  }
-
-  .gasoline-distribution-page .gasoline-flow-arrow::before {
-    top: 0;
-    right: auto;
-    bottom: 13px;
-    left: 50%;
-    width: 5px;
-    height: auto;
-    transform: translateX(-50%);
-  }
-
-  .gasoline-distribution-page .gasoline-flow-arrow::after {
-    top: auto;
-    right: auto;
-    bottom: 0;
-    left: 50%;
-    border-top: 15px solid var(--gasoline-arrow);
-    border-right: 11px solid transparent;
-    border-bottom: 0;
-    border-left: 11px solid transparent;
-    transform: translateX(-50%);
-  }
-
-  .gasoline-distribution-page .gasoline-sales-title {
+  .sales-share-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .gasoline-distribution-page .gasoline-plus {
-    margin: -0.15rem 0;
-  }
-
-  .gasoline-distribution-page .gasoline-sales-tables {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .gasoline-distribution-page .gasoline-data-table {
-    font-size: 11px;
-  }
-
-  .gasoline-distribution-page .gasoline-data-table th,
-  .gasoline-distribution-page .gasoline-data-table td {
-    height: 32px;
-    padding: 0.28rem 0.32rem;
-  }
-
-  .gasoline-distribution-page .gasoline-page-footer {
-    flex-direction: column;
-  }
-
-  .gasoline-distribution-page .gasoline-page-footer div {
-    width: 100%;
+  .sales-donut {
+    width: min(100%, 240px);
   }
 }
 </style>
